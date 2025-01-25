@@ -2,7 +2,6 @@ backoff==2.2.1
 listparser==0.19
 markdown==3.4.3
 numpy==1.26.0
-openai==1.6.1
 pandas==2.2.2
 pinecone-client==4.0.0
 python-dotenv==1.0.0
