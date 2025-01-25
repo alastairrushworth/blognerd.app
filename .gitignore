@@ -1,0 +1,27 @@
+
+# avoid tracking credentials
+.env
+*.pem
+
+# avoid tracking data
+*.parquet
+*.csv
+*.xlsx
+*.numbers
+*.pdf
+
+# 
+*.pyc
+.DS_Store
+
+# places not to track json
+blognerd/*.json
+
+# ignore quality folder
+temp/*
+
+# ignore secrets
+secrets.toml
+
+# ignore venv
+llama-env/*
