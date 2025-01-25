@@ -6,14 +6,12 @@ import os
 import time
 import re
 import backoff
-from openai import OpenAI
 import voyageai
 
 from dotenv import load_dotenv
 load_dotenv()
 
 vo = voyageai.Client(api_key=os.environ['VOYAGE_API_KEY'])
-openai_client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
 class APICallError(Exception):
     pass
@@ -31,13 +29,6 @@ def format_string_list(text_list: list) -> list:
     return _text_list
 
 @backoff.on_exception(backoff.constant, Exception, max_tries=2, interval=120)
-def openai_embedding_create(input: list, **kwargs) -> list:
-    '''Compute an embedding for a list of strings with exponential backoff'''
-    embedding = openai_client.embeddings.create(input=input, model="text-embedding-ada-002")
-    embeds = [x.embedding for x in embedding.data]
-    return embeds
-
-@backoff.on_exception(backoff.constant, Exception, max_tries=2, interval=120)
 def voyage_embedding_create(input: list, **kwargs) -> list:
     '''Compute an embedding for a list of strings with exponential backoff'''
     embeds = vo.embed(
@@ -48,15 +39,13 @@ def voyage_embedding_create(input: list, **kwargs) -> list:
     return embeds
 
 
-def text_to_embedding(text_list: list, model: str = "openai", **kwargs) -> pd.DataFrame:
-    '''Compute an embedding for a string or list of strings using the OpenAI API'''
+def text_to_embedding(text_list: list, model: str = "voyage", **kwargs) -> pd.DataFrame:
+    '''Compute an embedding for a string or list of strings using the voyage API'''
     _text_list = format_string_list(text_list=text_list)
     # fetch embeddings from the appropriate model
     try:
         if model == "voyage":
             embeds = voyage_embedding_create(input=_text_list, **kwargs)
-        elif model == "openai":
-            embeds = openai_embedding_create(input=_text_list, **kwargs)  
         embed_df = pd.DataFrame(list(zip(_text_list, embeds)), columns=['input', 'embedding'])
     except Exception as e:
         raise APICallError(f'Error: {e} problem getting embedding. Text: {text_list}')
