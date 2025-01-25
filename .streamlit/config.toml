@@ -1,0 +1,16 @@
+[client]
+showSidebarNavigation = false
+toolbarMode = "minimal"
+showErrorDetails = false
+
+[ui]
+hideTopBar = true
+
+[browser]
+gatherUsageStats = false
+
+[server]
+enableStaticServing = false
+
+[global]
+showWarningOnDirectExecution = false
