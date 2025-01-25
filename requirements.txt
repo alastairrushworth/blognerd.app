@@ -11,7 +11,5 @@ pytz==2023.3
 requests==2.31.0
 streamlit==1.40.1
 streamlit-lottie==0.0.5
-stripe==7.3.0
-tiktoken==0.4.0
 tldextract==3.4.1
 voyageai==0.2.3

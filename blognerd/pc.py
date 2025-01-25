@@ -8,7 +8,6 @@ import re
 import backoff
 from openai import OpenAI
 import voyageai
-import tiktoken
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -19,26 +18,6 @@ openai_client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 class APICallError(Exception):
     pass
 
-def count_tokens(text, model="gpt-3.5-turbo"):
-    '''Count the number of tokens in a string.'''
-    encoding = tiktoken.encoding_for_model(model)
-    return len(encoding.encode(text))
-
-def truncate_string_to_token_limit(
-        string, model="gpt-3.5-turbo", max_tokens=4096):
-    '''Truncate a string to a given number of tokens.'''
-    token_count = count_tokens(string, model=model)
-    while token_count > max_tokens:
-        string_split = string.split()
-        string_word_count = len(string_split)
-        if token_count > (max_tokens * 2):
-            split_jump = int(0.5 * string_word_count)
-        else:
-            split_jump = 100
-        string = ' '.join(string_split[:(string_word_count - split_jump)])
-        token_count = count_tokens(string, model=model)
-    return string
-
 def format_string_list(text_list: list) -> list:
     '''Format a list of strings for embedding'''
     # convert to list if input is a string
@@ -46,9 +25,9 @@ def format_string_list(text_list: list) -> list:
         _text_list = [text_list]
     else:
         _text_list = text_list.copy()
-    # truncate long texts, if necessary
-    _text_list = [truncate_string_to_token_limit(x, max_tokens=8191)
-                    for x in text_list]
+    # # truncate long texts, if necessary
+    # _text_list = [truncate_string_to_token_limit(x, max_tokens=8191)
+    #                 for x in text_list]
     return _text_list
 
 @backoff.on_exception(backoff.constant, Exception, max_tries=2, interval=120)
