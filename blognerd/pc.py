@@ -33,7 +33,7 @@ def voyage_embedding_create(input: list, **kwargs) -> list:
     '''Compute an embedding for a list of strings with exponential backoff'''
     embeds = vo.embed(
         input, 
-        model="voyage-large-2-instruct",
+        model="voyage-3-large",
         **kwargs
     ).embeddings
     return embeds
