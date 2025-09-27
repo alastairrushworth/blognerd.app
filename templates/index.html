@@ -489,7 +489,10 @@
                         </div>
                         <div class="result-actions">
                             {{if not .IsFeed}}
-                                <a class="action-link" onclick="searchMoreLike('{{.URL}}')">More like this</a>
+                                <a class="action-link" onclick="searchMoreLike('{{.URL}}')">Similar posts</a>
+                                <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
+                            {{else}}
+                                <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
                             {{end}}
                             <a class="action-link" onclick="searchFromSite('{{.OriginalDomain}}')">More from site</a>
                             {{if and .IsFeed .RSSURL}}
@@ -651,7 +654,10 @@
                         <div class="result-actions">`;
                     
                     if (!result.is_feed_search) {
-                        html += `<a class="action-link" onclick="searchMoreLike('${result.url}')">More like this</a>`;
+                        html += `<a class="action-link" onclick="searchMoreLike('${result.url}')">Similar posts</a>`;
+                        html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
+                    } else {
+                        html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
                     }
                     html += `<a class="action-link" onclick="searchFromSite('${result.original_domain}')">More from site</a>`;
                     
@@ -674,6 +680,16 @@
         function updateURL(params) {
             const newURL = window.location.pathname + '?' + params.toString();
             history.pushState(null, '', newURL);
+        }
+
+        function cleanURL(url) {
+            // Remove http:// and https:// schemes
+            url = url.replace(/^https?:\/\//, '');
+            // Remove www. prefix
+            url = url.replace(/^www\./, '');
+            // Remove trailing slash
+            url = url.replace(/\/$/, '');
+            return url;
         }
 
         function updateFilterVisibility(skipTimeDefault = false) {
@@ -751,11 +767,14 @@
             if (searchInput) searchInput.value = newQuery;
             if (initialSearch) initialSearch.value = newQuery;
             
-            // Switch to pages and perform search
+            // This function is now only for similar posts, so always switch to pages
             currentSearchType = 'pages';
             document.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
                 tab.classList.toggle('active', tab.dataset.type === 'pages');
             });
+            
+            // Update filter visibility
+            updateFilterVisibility();
             
             if (initialState && initialState.style.display !== 'none') {
                 switchToSearchState(newQuery);
@@ -763,6 +782,30 @@
             
             performSearch();
         }
+
+        function searchSimilarBlogs(domain) {
+            // Clean the domain to remove https:// etc for blog similarity
+            const cleanDomain = cleanURL(domain);
+            const newQuery = 'like:' + cleanDomain;
+            if (searchInput) searchInput.value = newQuery;
+            if (initialSearch) initialSearch.value = newQuery;
+            
+            // Switch to sites/feeds to show similar blogs
+            currentSearchType = 'sites';
+            document.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === 'sites');
+            });
+            
+            // Update filter visibility
+            updateFilterVisibility();
+            
+            if (initialState && initialState.style.display !== 'none') {
+                switchToSearchState(newQuery);
+            }
+            
+            performSearch();
+        }
+
 
         function searchFromSite(domain) {
             // Use the original domain exactly as stored in database for accurate site: matching

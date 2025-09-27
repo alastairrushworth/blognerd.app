@@ -210,6 +210,7 @@ func (app *App) handleCSVExport(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(csvContent))
 }
 
+
 func (app *App) performSearch(query string, params map[string][]string) ([]SearchResult, float64) {
 	start := time.Now()
 
@@ -257,10 +258,21 @@ func (app *App) searchContent(query string, maxResults int) ([]SearchResult, err
 
 	// Check for "like:" syntax
 	if parsedQuery.IsLike {
-		// Get embedding from Pinecone for this URL
-		embedding, err = app.pineconeAPI.GetEmbedding(parsedQuery.LikeURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get embedding for URL: %w", err)
+		// Determine if this is a domain (for similar blogs) or a full URL (for similar posts)
+		isDomain := !strings.HasPrefix(parsedQuery.LikeURL, "http://") && !strings.HasPrefix(parsedQuery.LikeURL, "https://")
+		
+		if isDomain || strings.Contains(query, "type:feeds") {
+			// For feeds search or domain-based search, find similar blogs
+			embedding, err = app.getSimilarBlogEmbedding(parsedQuery.LikeURL)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get embedding for similar blogs: %w", err)
+			}
+		} else {
+			// For posts search, get embedding from Pinecone for this URL
+			embedding, err = app.pineconeAPI.GetEmbedding(parsedQuery.LikeURL)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get embedding for URL: %w", err)
+			}
 		}
 	} else if parsedQuery.Text != "" && parsedQuery.Text != "a" {
 		// Get embedding from Voyage API
@@ -577,4 +589,57 @@ func generateCSV(feedResults []SearchResult) string {
 
 	writer.Flush()
 	return buf.String()
+}
+
+
+func (app *App) getSimilarBlogEmbedding(domain string) ([]float64, error) {
+	// First, search for the specific domain in feeds using a generic embedding to filter by baseurl
+	genericEmbedding, err := app.voyageAPI.GetEmbedding("blog content")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get generic embedding: %w", err)
+	}
+	
+	domainFilters := map[string]interface{}{
+		"baseurl": map[string]interface{}{"$eq": domain},
+	}
+	
+	// Search for the specific domain in feeds to get its ID
+	domainResults, err := app.pineconeAPI.Query("blaze-feeds-v2", genericEmbedding, domainFilters, 1)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find domain in feeds: %w", err)
+	}
+	
+	if len(domainResults) == 0 {
+		// If we can't find the exact domain, use the domain text as fallback
+		return app.voyageAPI.GetEmbedding(domain)
+	}
+	
+	// Get the embedding from the found domain entry using the feeds namespace
+	return app.pineconeAPI.GetEmbeddingFromNamespace(domainResults[0].ID, "blaze-feeds-v2")
+}
+
+func (app *App) convertFeedResults(pineconeResults []PineconeMatch) []SearchResult {
+	results := make([]SearchResult, len(pineconeResults))
+	for i, result := range pineconeResults {
+		title := getMetadataString(result.Metadata, "title")
+		ownerName := getMetadataString(result.Metadata, "owner_name")
+		if ownerName != "" {
+			title = ownerName
+		}
+		subtitle := getMetadataString(result.Metadata, "short_summary")
+		baseURL := getMetadataString(result.Metadata, "baseurl")
+		
+		results[i] = SearchResult{
+			URL:            baseURL,  // Use baseurl for feeds
+			Title:          title,
+			Subtitle:       subtitle,
+			Date:           "", // Feeds don't have dates
+			Score:          result.Score,
+			BaseDomain:     cleanURL(baseURL),
+			IsFeed:         true,
+			RSSURL:         result.ID, // RSS feed URL is stored in Pinecone ID
+			OriginalDomain: baseURL,
+		}
+	}
+	return results
 }
