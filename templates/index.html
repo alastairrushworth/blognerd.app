@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>blognerd.app</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/rss.png">
+    
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRPEST2NTE"></script>
     <script>
@@ -45,6 +48,7 @@
             align-items: center;
             gap: 30px;
             margin-bottom: 20px;
+            min-height: 60px;
         }
 
         .logo {
@@ -53,6 +57,17 @@
             color: #4285f4;
             text-decoration: none;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            align-self: center;
         }
 
         .search-container {
@@ -69,6 +84,8 @@
             border-radius: 24px;
             outline: none;
             box-shadow: none;
+            line-height: 1;
+            vertical-align: middle;
         }
 
         .search-box:hover {
@@ -373,18 +390,52 @@
         /* Mobile responsive */
         @media (max-width: 600px) {
             .header-content {
-                flex-direction: column;
                 gap: 16px;
+                padding: 0 16px;
+                flex-wrap: nowrap;
             }
             
             .logo {
-                align-self: flex-start;
+                font-size: 20px;
+                min-width: fit-content;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+            
+            .logo-icon {
+                width: 24px;
+                height: 24px;
+                align-self: center;
+            }
+            
+            .logo-large-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .search-box {
+                font-size: 16px;
+                width: auto;
+                flex: 1;
+                min-width: 0;
             }
             
             .filters {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
+                padding: 12px 16px;
+                gap: 8px;
+                flex-wrap: nowrap;
+            }
+            
+            .filter-group {
+                flex-wrap: nowrap;
+                min-width: fit-content;
+                flex-shrink: 0;
+            }
+            
+            .filter-select {
+                min-width: 80px;
+                font-size: 12px;
+                flex-shrink: 0;
             }
 
             .type-tab {
@@ -403,6 +454,16 @@
             font-size: 72px;
             color: #4285f4;
             margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .logo-large-icon {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
         }
 
         .initial-state .search-box {
@@ -450,7 +511,10 @@
     <div class="main-content">
         <!-- Initial state when no search has been performed -->
         <div id="initial-state" class="initial-state" {{if .Query}}style="display: none;"{{end}}>
-            <div class="logo-large">blognerd.app</div>
+            <div class="logo-large">
+                <img src="/static/rss.png" alt="RSS" class="logo-large-icon">
+                blognerd.app
+            </div>
             <div class="search-container">
                 <input type="text" class="search-box" id="initial-search" placeholder="Search for posts and feeds..." autocomplete="off">
                 <div class="type-tabs-large">
@@ -464,7 +528,10 @@
         <div id="search-state" {{if not .Query}}style="display: none;"{{end}}>
             <div class="header">
                 <div class="header-content">
-                    <a href="/" class="logo">blognerd.app</a>
+                    <a href="/" class="logo">
+                        <img src="/static/rss.png" alt="RSS" class="logo-icon">
+                        blognerd.app
+                    </a>
                     <div class="search-container">
                         <input type="text" class="search-box" id="search-input" value="{{.Query}}" placeholder="Search for posts and feeds..." autocomplete="off">
                     </div>
@@ -868,7 +935,7 @@
             const timeFilter = document.getElementById('time-filter');
             const contentFilter = document.getElementById('content-filter');
             if (timeFilter) timeFilter.value = '';
-            if (contentFilter) contentFilter.value = '';
+            if (contentFilter) contentFilter.value = 'all';
             
             // Update filter visibility to show posts toolbar, skipping the time default
             updateFilterVisibility(true);
@@ -930,6 +997,54 @@
             }
         });
 
+        // Clear all settings on page refresh (but stay in search view)
+        function clearAllSettingsOnRefresh() {
+            // Clear URL parameters
+            const url = new URL(window.location);
+            url.search = '';
+            window.history.replaceState({}, '', url);
+            
+            // Clear search inputs
+            if (searchInput) searchInput.value = '';
+            if (initialSearch) initialSearch.value = '';
+            
+            // Reset filters to defaults
+            const timeFilter = document.getElementById('time-filter');
+            const contentFilter = document.getElementById('content-filter');
+            if (timeFilter) {
+                timeFilter.value = 'month';
+                timeFilter.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (contentFilter) {
+                contentFilter.value = 'all';
+                contentFilter.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
+            // Reset search type to posts
+            currentSearchType = 'pages';
+            document.querySelectorAll('.type-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === 'pages');
+            });
+            document.querySelectorAll('.type-tab-large').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === 'pages');
+            });
+            
+            // Clear results
+            if (resultsDiv) resultsDiv.innerHTML = '';
+            
+            // Stay in search view (don't go back to landing page)
+            if (initialState && searchState) {
+                initialState.style.display = 'none';
+                searchState.style.display = 'block';
+            }
+        }
+        
+        // Check if this is a page refresh (not a navigation)
+        if (performance.navigation.type === performance.navigation.TYPE_RELOAD || 
+            performance.getEntriesByType("navigation")[0].type === "reload") {
+            clearAllSettingsOnRefresh();
+        }
+        
         // Initialize filter visibility on page load
         updateFilterVisibility();
         
