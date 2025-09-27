@@ -38,6 +38,3 @@ EXPOSE 8080
 
 # Set environment variable for port
 ENV PORT=8080
-
-# Run the binary
-CMD ["./blognerd-server"]
