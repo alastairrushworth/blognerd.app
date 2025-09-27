@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>blognerd.app</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRPEST2NTE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-FRPEST2NTE');
+    </script>
     <style>
         * {
             margin: 0;
@@ -138,6 +148,31 @@
         .filter-select:focus {
             outline: none;
             border-color: #1a73e8;
+        }
+
+        .export-btn {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+        }
+
+        .export-btn:last-child {
+            margin-right: 0;
+        }
+
+        .export-btn:hover {
+            background-color: #e8eaed;
+            border-color: #c0c4cc;
+        }
+
+        .export-btn:active {
+            background-color: #dadce0;
         }
 
         /* Results section */
@@ -406,7 +441,7 @@
         </div>
         
         <div class="filters">
-            <div class="filter-group">
+            <div class="filter-group" id="content-filter-group">
                 <span class="filter-label">Content:</span>
                 <select class="filter-select" id="content-filter">
                     <option value="" {{if eq .SearchContent ""}}selected{{end}}>All</option>
@@ -415,14 +450,22 @@
                     <option value="news" {{if eq .SearchContent "news"}}selected{{end}}>News</option>
                 </select>
             </div>
-            <div class="filter-group">
+            <div class="filter-group" id="time-filter-group">
                 <span class="filter-label">Time:</span>
                 <select class="filter-select" id="time-filter">
                     <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
                     <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
-                    <option value="month" {{if eq .SearchTime "month"}}selected{{end}}>Past month</option>
+                    <option value="month" {{if or (eq .SearchTime "month") (and (eq .SearchTime "") (eq .SearchType "pages"))}}selected{{end}}>Past month</option>
                     <option value="year" {{if eq .SearchTime "year"}}selected{{end}}>Past year</option>
                 </select>
+            </div>
+            <div class="filter-group" id="export-buttons-group" style="display: none;">
+                <button class="export-btn" id="opml-export-btn" onclick="exportOPML()">
+                    📄 Export OPML
+                </button>
+                <button class="export-btn" id="csv-export-btn" onclick="exportCSV()">
+                    📊 Export CSV
+                </button>
             </div>
         </div>
 
@@ -522,6 +565,9 @@
                 });
                 e.target.classList.add('active');
                 
+                // Update filter visibility based on search type
+                updateFilterVisibility();
+                
                 // If we have a search query, perform search
                 const query = (searchInput?.value || initialSearch?.value || '').trim();
                 if (query) {
@@ -552,6 +598,9 @@
             document.querySelectorAll('#search-state .type-tab').forEach(tab => {
                 tab.classList.toggle('active', tab.dataset.type === currentSearchType);
             });
+            
+            // Update filter visibility
+            updateFilterVisibility();
         }
 
         function performSearch() {
@@ -627,6 +676,76 @@
             history.pushState(null, '', newURL);
         }
 
+        function updateFilterVisibility(skipTimeDefault = false) {
+            const exportGroup = document.getElementById('export-buttons-group');
+            const contentGroup = document.getElementById('content-filter-group');
+            const timeGroup = document.getElementById('time-filter-group');
+            const timeFilter = document.getElementById('time-filter');
+            
+            if (currentSearchType === 'sites') {
+                // RSS Feeds: show export buttons, hide content and time filters
+                if (exportGroup) exportGroup.style.display = 'flex';
+                if (contentGroup) contentGroup.style.display = 'none';
+                if (timeGroup) timeGroup.style.display = 'none';
+            } else {
+                // Posts: hide export buttons, show content and time filters
+                if (exportGroup) exportGroup.style.display = 'none';
+                if (contentGroup) contentGroup.style.display = 'flex';
+                if (timeGroup) timeGroup.style.display = 'flex';
+                
+                // Set default time to "month" if no time is currently selected, unless explicitly skipped
+                if (!skipTimeDefault && timeFilter && timeFilter.value === '') {
+                    timeFilter.value = 'month';
+                }
+            }
+        }
+
+        function exportOPML() {
+            const query = (searchInput?.value || initialSearch?.value || '').trim();
+            if (!query) {
+                alert('Please perform a feed search first');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                qry: query,
+                type: currentSearchType,
+                content: document.getElementById('content-filter')?.value || '',
+                time: document.getElementById('time-filter')?.value || ''
+            });
+            
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/export/opml?' + params.toString();
+            link.download = 'feeds.opml';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportCSV() {
+            const query = (searchInput?.value || initialSearch?.value || '').trim();
+            if (!query) {
+                alert('Please perform a feed search first');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                qry: query,
+                type: currentSearchType,
+                content: document.getElementById('content-filter')?.value || '',
+                time: document.getElementById('time-filter')?.value || ''
+            });
+            
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/export/csv?' + params.toString();
+            link.download = 'feeds.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function searchMoreLike(url) {
             const newQuery = 'like:' + url;
             if (searchInput) searchInput.value = newQuery;
@@ -656,6 +775,15 @@
             document.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
                 tab.classList.toggle('active', tab.dataset.type === 'pages');
             });
+            
+            // Reset time filter to "Any time" and content filter to "All" first
+            const timeFilter = document.getElementById('time-filter');
+            const contentFilter = document.getElementById('content-filter');
+            if (timeFilter) timeFilter.value = '';
+            if (contentFilter) contentFilter.value = '';
+            
+            // Update filter visibility to show posts toolbar, skipping the time default
+            updateFilterVisibility(true);
             
             if (initialState && initialState.style.display !== 'none') {
                 switchToSearchState(newQuery);
@@ -696,6 +824,9 @@
                 if (contentFilter) contentFilter.value = content;
                 if (timeFilter) timeFilter.value = time;
                 
+                // Update filter visibility
+                updateFilterVisibility();
+                
                 // Perform search with current parameters
                 performSearch();
             } else {
@@ -711,6 +842,9 @@
             }
         });
 
+        // Initialize filter visibility on page load
+        updateFilterVisibility();
+        
         // Load default results on page load if no query
         if (!"{{.Query}}" && initialState && initialState.style.display !== 'none') {
             // Show initial empty state - no automatic search
