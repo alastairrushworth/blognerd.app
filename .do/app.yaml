@@ -1,0 +1,31 @@
+name: blognerd-app
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: alastairrushworth/blognerd.app
+    branch: main
+  run_command: ./blognerd-server
+  environment_slug: go
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 8080
+  routes:
+  - path: /
+  health_check:
+    http_path: /
+  envs:
+  - key: PORT
+    value: "8080"
+  - key: PINECONE_API_KEY
+    scope: RUN_TIME
+    type: SECRET
+  - key: PINECONE_V2_HOST
+    scope: RUN_TIME
+    type: SECRET
+  - key: PINECONE_V2_INDEX
+    scope: RUN_TIME
+    type: SECRET
+  - key: VOYAGE_API_KEY
+    scope: RUN_TIME
+    type: SECRET
