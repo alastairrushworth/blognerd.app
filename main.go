@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -74,6 +76,8 @@ func main() {
 	r.HandleFunc("/", app.handleHome).Methods("GET")
 	r.HandleFunc("/search", app.handleSearch).Methods("GET")
 	r.HandleFunc("/api/search", app.handleAPISearch).Methods("GET", "POST")
+	r.HandleFunc("/api/export/opml", app.handleOPMLExport).Methods("GET", "POST")
+	r.HandleFunc("/api/export/csv", app.handleCSVExport).Methods("GET", "POST")
 
 	// Start server
 	port := "8000"
@@ -148,6 +152,64 @@ func (app *App) handleAPISearch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func (app *App) handleOPMLExport(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("qry")
+	if query == "" {
+		http.Error(w, "Query parameter 'qry' is required", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure this is a feeds search
+	if !strings.Contains(query, "type:feeds") {
+		query += " type:feeds"
+	}
+
+	results, _ := app.performSearch(query, r.URL.Query())
+
+	// Filter only feed results
+	var feedResults []SearchResult
+	for _, result := range results {
+		if result.IsFeed {
+			feedResults = append(feedResults, result)
+		}
+	}
+
+	opmlContent := generateOPML(feedResults, query)
+
+	w.Header().Set("Content-Type", "application/xml")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"feeds.opml\"")
+	w.Write([]byte(opmlContent))
+}
+
+func (app *App) handleCSVExport(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("qry")
+	if query == "" {
+		http.Error(w, "Query parameter 'qry' is required", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure this is a feeds search
+	if !strings.Contains(query, "type:feeds") {
+		query += " type:feeds"
+	}
+
+	results, _ := app.performSearch(query, r.URL.Query())
+
+	// Filter only feed results
+	var feedResults []SearchResult
+	for _, result := range results {
+		if result.IsFeed {
+			feedResults = append(feedResults, result)
+		}
+	}
+
+	csvContent := generateCSV(feedResults)
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"feeds.csv\"")
+	w.Write([]byte(csvContent))
+}
+
 func (app *App) performSearch(query string, params map[string][]string) ([]SearchResult, float64) {
 	start := time.Now()
 
@@ -163,8 +225,11 @@ func (app *App) performSearch(query string, params map[string][]string) ([]Searc
 		if content != "" {
 			searchQuery += " type:" + content
 		}
+		// Default to last month for posts if no time filter specified, except for site: searches
 		if timeFilter != "" {
 			searchQuery += " since:last_" + timeFilter
+		} else if !strings.Contains(searchQuery, "site:") {
+			searchQuery += " since:last_month"
 		}
 	}
 
@@ -300,12 +365,31 @@ func (app *App) searchContent(query string, maxResults int) ([]SearchResult, err
 
 	// Sort by time in descending order if this is a site search for posts (not feeds)
 	if !isFeedSearch && strings.Contains(query, "site:") {
-		sort.Slice(results, func(i, j int) bool {
-			// Parse dates for comparison - more recent dates come first
-			dateI := parseTimeFromMetadata(pineconeResults[i].Metadata)
-			dateJ := parseTimeFromMetadata(pineconeResults[j].Metadata)
+		// Create a slice with both results and original metadata for sorting
+		type resultWithMetadata struct {
+			result   SearchResult
+			metadata map[string]interface{}
+		}
+		
+		resultsWithMeta := make([]resultWithMetadata, len(results))
+		for i, result := range results {
+			resultsWithMeta[i] = resultWithMetadata{
+				result:   result,
+				metadata: pineconeResults[i].Metadata,
+			}
+		}
+		
+		// Sort by time - more recent dates come first
+		sort.Slice(resultsWithMeta, func(i, j int) bool {
+			dateI := parseTimeFromMetadata(resultsWithMeta[i].metadata)
+			dateJ := parseTimeFromMetadata(resultsWithMeta[j].metadata)
 			return dateI.After(dateJ)
 		})
+		
+		// Extract sorted results back to the results array
+		for i, rwm := range resultsWithMeta {
+			results[i] = rwm.result
+		}
 	}
 
 	return results, nil
@@ -409,4 +493,88 @@ func parseTimeFromMetadata(metadata map[string]interface{}) time.Time {
 	}
 	
 	return time.Time{} // Return zero time if parsing fails
+}
+
+func generateOPML(feedResults []SearchResult, query string) string {
+	opml := `<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+<head>
+<title>BlogNerd Feed Export</title>
+<dateCreated>` + time.Now().Format(time.RFC1123) + `</dateCreated>
+<dateModified>` + time.Now().Format(time.RFC1123) + `</dateModified>
+<ownerName>blognerd.app</ownerName>
+<ownerEmail>noreply@blognerd.app</ownerEmail>
+<ownerId>https://blognerd.app</ownerId>
+<docs>http://www.opml.org/spec2</docs>
+<expansionState></expansionState>
+<vertScrollState>1</vertScrollState>
+<windowTop>61</windowTop>
+<windowLeft>304</windowLeft>
+<windowBottom>562</windowBottom>
+<windowRight>842</windowRight>
+</head>
+<body>
+<outline text="BlogNerd Search Results: ` + escapeXML(query) + `" title="BlogNerd Search Results">
+`
+
+	for _, feed := range feedResults {
+		title := escapeXML(feed.Title)
+		if title == "" {
+			title = escapeXML(feed.BaseDomain)
+		}
+		
+		subtitle := escapeXML(feed.Subtitle)
+		rssURL := escapeXML(feed.RSSURL)
+		htmlURL := escapeXML(feed.URL)
+		
+		opml += `<outline type="rss" text="` + title + `" title="` + title + `" xmlUrl="` + rssURL + `" htmlUrl="` + htmlURL + `"`
+		if subtitle != "" {
+			opml += ` description="` + subtitle + `"`
+		}
+		opml += `/>`
+		opml += "\n"
+	}
+
+	opml += `</outline>
+</body>
+</opml>`
+
+	return opml
+}
+
+func escapeXML(s string) string {
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	s = strings.ReplaceAll(s, "\"", "&quot;")
+	s = strings.ReplaceAll(s, "'", "&#39;")
+	return s
+}
+
+func generateCSV(feedResults []SearchResult) string {
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	// Write CSV header
+	header := []string{"Title", "Description", "Website URL", "RSS Feed URL"}
+	writer.Write(header)
+
+	// Write feed data
+	for _, feed := range feedResults {
+		title := feed.Title
+		if title == "" {
+			title = feed.BaseDomain
+		}
+		
+		record := []string{
+			title,
+			feed.Subtitle,
+			feed.URL,
+			feed.RSSURL,
+		}
+		writer.Write(record)
+	}
+
+	writer.Flush()
+	return buf.String()
 }
