@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -297,6 +298,16 @@ func (app *App) searchContent(query string, maxResults int) ([]SearchResult, err
 		}
 	}
 
+	// Sort by time in descending order if this is a site search for posts (not feeds)
+	if !isFeedSearch && strings.Contains(query, "site:") {
+		sort.Slice(results, func(i, j int) bool {
+			// Parse dates for comparison - more recent dates come first
+			dateI := parseTimeFromMetadata(pineconeResults[i].Metadata)
+			dateJ := parseTimeFromMetadata(pineconeResults[j].Metadata)
+			return dateI.After(dateJ)
+		})
+	}
+
 	return results, nil
 }
 
@@ -373,4 +384,29 @@ func cleanURL(url string) string {
 	url = strings.TrimSuffix(url, "/")
 	
 	return url
+}
+
+func parseTimeFromMetadata(metadata map[string]interface{}) time.Time {
+	dateStr := getMetadataString(metadata, "dt_published")
+	if dateStr == "" {
+		return time.Time{} // Return zero time if no date
+	}
+	
+	// Try multiple date formats
+	formats := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+	
+	for _, format := range formats {
+		if t, err := time.Parse(format, dateStr); err == nil {
+			return t
+		}
+	}
+	
+	return time.Time{} // Return zero time if parsing fails
 }
