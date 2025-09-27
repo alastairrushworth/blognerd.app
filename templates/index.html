@@ -26,6 +26,9 @@
             background-color: #fff;
             color: #202124;
             line-height: 1.4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Header with logo and search */
@@ -335,9 +338,14 @@
             display: none;
         }
 
+        /* Main content wrapper */
+        .main-content {
+            flex: 1;
+        }
+
         /* Footer */
         .footer {
-            margin-top: 60px;
+            margin-top: auto;
             padding: 20px 0;
             border-top: 1px solid #dadce0;
             background-color: #f8f9fa;
@@ -439,101 +447,103 @@
     </style>
 </head>
 <body>
-    <!-- Initial state when no search has been performed -->
-    <div id="initial-state" class="initial-state" {{if .Query}}style="display: none;"{{end}}>
-        <div class="logo-large">blognerd.app</div>
-        <div class="search-container">
-            <input type="text" class="search-box" id="initial-search" placeholder="Search for posts and feeds..." autocomplete="off">
-            <div class="type-tabs-large">
-                <button class="type-tab-large active" data-type="pages">Posts</button>
-                <button class="type-tab-large" data-type="sites">RSS Feeds</button>
+    <div class="main-content">
+        <!-- Initial state when no search has been performed -->
+        <div id="initial-state" class="initial-state" {{if .Query}}style="display: none;"{{end}}>
+            <div class="logo-large">blognerd.app</div>
+            <div class="search-container">
+                <input type="text" class="search-box" id="initial-search" placeholder="Search for posts and feeds..." autocomplete="off">
+                <div class="type-tabs-large">
+                    <button class="type-tab-large active" data-type="pages">Posts</button>
+                    <button class="type-tab-large" data-type="sites">RSS Feeds</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Search results state -->
-    <div id="search-state" {{if not .Query}}style="display: none;"{{end}}>
-        <div class="header">
-            <div class="header-content">
-                <a href="/" class="logo">blognerd.app</a>
-                <div class="search-container">
-                    <input type="text" class="search-box" id="search-input" value="{{.Query}}" placeholder="Search for posts and feeds..." autocomplete="off">
+        <!-- Search results state -->
+        <div id="search-state" {{if not .Query}}style="display: none;"{{end}}>
+            <div class="header">
+                <div class="header-content">
+                    <a href="/" class="logo">blognerd.app</a>
+                    <div class="search-container">
+                        <input type="text" class="search-box" id="search-input" value="{{.Query}}" placeholder="Search for posts and feeds..." autocomplete="off">
+                    </div>
+                </div>
+                
+                <div class="search-types">
+                    <div class="type-tab {{if eq .SearchType "pages"}}active{{end}}" data-type="pages">Posts</div>
+                    <div class="type-tab {{if eq .SearchType "sites"}}active{{end}}" data-type="sites">RSS Feeds</div>
                 </div>
             </div>
             
-            <div class="search-types">
-                <div class="type-tab {{if eq .SearchType "pages"}}active{{end}}" data-type="pages">Posts</div>
-                <div class="type-tab {{if eq .SearchType "sites"}}active{{end}}" data-type="sites">RSS Feeds</div>
+            <div class="filters">
+                <div class="filter-group" id="content-filter-group">
+                    <span class="filter-label">Content:</span>
+                    <select class="filter-select" id="content-filter">
+                        <option value="" {{if eq .SearchContent ""}}selected{{end}}>All</option>
+                        <option value="blogs" {{if eq .SearchContent "blogs"}}selected{{end}}>Blogs</option>
+                        <option value="academic" {{if eq .SearchContent "academic"}}selected{{end}}>Academic</option>
+                        <option value="news" {{if eq .SearchContent "news"}}selected{{end}}>News</option>
+                    </select>
+                </div>
+                <div class="filter-group" id="time-filter-group">
+                    <span class="filter-label">Time:</span>
+                    <select class="filter-select" id="time-filter">
+                        <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
+                        <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
+                        <option value="month" {{if or (eq .SearchTime "month") (and (eq .SearchTime "") (eq .SearchType "pages"))}}selected{{end}}>Past month</option>
+                        <option value="year" {{if eq .SearchTime "year"}}selected{{end}}>Past year</option>
+                    </select>
+                </div>
+                <div class="filter-group" id="export-buttons-group" style="display: none;">
+                    <button class="export-btn" id="opml-export-btn" onclick="exportOPML()">
+                        📄 Export OPML
+                    </button>
+                    <button class="export-btn" id="csv-export-btn" onclick="exportCSV()">
+                        📊 Export CSV
+                    </button>
+                </div>
             </div>
-        </div>
-        
-        <div class="filters">
-            <div class="filter-group" id="content-filter-group">
-                <span class="filter-label">Content:</span>
-                <select class="filter-select" id="content-filter">
-                    <option value="" {{if eq .SearchContent ""}}selected{{end}}>All</option>
-                    <option value="blogs" {{if eq .SearchContent "blogs"}}selected{{end}}>Blogs</option>
-                    <option value="academic" {{if eq .SearchContent "academic"}}selected{{end}}>Academic</option>
-                    <option value="news" {{if eq .SearchContent "news"}}selected{{end}}>News</option>
-                </select>
-            </div>
-            <div class="filter-group" id="time-filter-group">
-                <span class="filter-label">Time:</span>
-                <select class="filter-select" id="time-filter">
-                    <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
-                    <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
-                    <option value="month" {{if or (eq .SearchTime "month") (and (eq .SearchTime "") (eq .SearchType "pages"))}}selected{{end}}>Past month</option>
-                    <option value="year" {{if eq .SearchTime "year"}}selected{{end}}>Past year</option>
-                </select>
-            </div>
-            <div class="filter-group" id="export-buttons-group" style="display: none;">
-                <button class="export-btn" id="opml-export-btn" onclick="exportOPML()">
-                    📄 Export OPML
-                </button>
-                <button class="export-btn" id="csv-export-btn" onclick="exportCSV()">
-                    📊 Export CSV
-                </button>
-            </div>
-        </div>
 
-        <div class="results-container">
-            <div id="loading" class="loading">Searching...</div>
-            
-            <div id="results">
-                {{if .Results}}
-                    <div class="results-stats">
-                        About {{.TotalResults}} results ({{printf "%.2f" .TimeTaken}} seconds)
-                    </div>
-                    
-                    {{range .Results}}
-                    <div class="result-item {{if .IsFeed}}site-result{{else}}page-result{{end}}">
-                        <div class="result-url">{{.BaseDomain}}{{if and (not .IsFeed) .Date}} • {{.Date}}{{end}}</div>
-                        <div class="result-title">
-                            <a href="{{.URL}}" target="_blank">{{.Title}}</a>
+            <div class="results-container">
+                <div id="loading" class="loading">Searching...</div>
+                
+                <div id="results">
+                    {{if .Results}}
+                        <div class="results-stats">
+                            About {{.TotalResults}} results ({{printf "%.2f" .TimeTaken}} seconds)
                         </div>
-                        <div class="result-snippet">{{.Subtitle}}</div>
-                        <div class="result-meta">
+                        
+                        {{range .Results}}
+                        <div class="result-item {{if .IsFeed}}site-result{{else}}page-result{{end}}">
+                            <div class="result-url">{{.BaseDomain}}{{if and (not .IsFeed) .Date}} • {{.Date}}{{end}}</div>
+                            <div class="result-title">
+                                <a href="{{.URL}}" target="_blank">{{.Title}}</a>
+                            </div>
+                            <div class="result-snippet">{{.Subtitle}}</div>
+                            <div class="result-meta">
+                            </div>
+                            <div class="result-actions">
+                                {{if not .IsFeed}}
+                                    <a class="action-link" onclick="searchMoreLike('{{.URL}}')">Similar posts</a>
+                                    <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
+                                {{else}}
+                                    <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
+                                {{end}}
+                                <a class="action-link" onclick="searchFromSite('{{.OriginalDomain}}')">More from site</a>
+                                {{if and .IsFeed .RSSURL}}
+                                    <a href="{{.RSSURL}}" class="action-link" target="_blank">📡 RSS Feed</a>
+                                {{end}}
+                            </div>
                         </div>
-                        <div class="result-actions">
-                            {{if not .IsFeed}}
-                                <a class="action-link" onclick="searchMoreLike('{{.URL}}')">Similar posts</a>
-                                <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
-                            {{else}}
-                                <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
-                            {{end}}
-                            <a class="action-link" onclick="searchFromSite('{{.OriginalDomain}}')">More from site</a>
-                            {{if and .IsFeed .RSSURL}}
-                                <a href="{{.RSSURL}}" class="action-link" target="_blank">📡 RSS Feed</a>
-                            {{end}}
+                        {{end}}
+                    {{else if .Query}}
+                        <div class="no-results">
+                            <p>No results found for "<strong>{{.Query}}</strong>"</p>
+                            <p>Try different keywords or check your spelling.</p>
                         </div>
-                    </div>
                     {{end}}
-                {{else if .Query}}
-                    <div class="no-results">
-                        <p>No results found for "<strong>{{.Query}}</strong>"</p>
-                        <p>Try different keywords or check your spelling.</p>
-                    </div>
-                {{end}}
+                </div>
             </div>
         </div>
     </div>
