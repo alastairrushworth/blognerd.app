@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>blognerd.app</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRPEST2NTE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-FRPEST2NTE');
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, arial, sans-serif;
+            background-color: #fff;
+            color: #202124;
+            line-height: 1.4;
+        }
+
+        /* Header with logo and search */
+        .header {
+            padding: 20px 0 0 0;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .header-content {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 400;
+            color: #4285f4;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .search-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            height: 44px;
+            padding: 0 16px;
+            font-size: 16px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .search-box:hover {
+            box-shadow: 0 2px 5px 1px rgba(64,60,67,.16);
+        }
+
+        .search-box:focus {
+            border-color: #4285f4;
+            box-shadow: 0 2px 5px 1px rgba(64,60,67,.16);
+        }
+
+        /* Search type tabs - PROMINENT */
+        .search-types {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .type-tab {
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #5f6368;
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .type-tab.active {
+            color: #1a73e8;
+            border-bottom-color: #1a73e8;
+            font-weight: 600;
+        }
+
+        .type-tab:hover:not(.active) {
+            color: #202124;
+            background-color: rgba(95, 99, 104, 0.08);
+        }
+
+
+        /* Filters */
+        .filters {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: #5f6368;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            padding: 6px 8px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            color: #3c4043;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+
+        .export-btn {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+        }
+
+        .export-btn:last-child {
+            margin-right: 0;
+        }
+
+        .export-btn:hover {
+            background-color: #e8eaed;
+            border-color: #c0c4cc;
+        }
+
+        .export-btn:active {
+            background-color: #dadce0;
+        }
+
+        /* Results section */
+        .results-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .results-stats {
+            padding: 16px 0;
+            color: #70757a;
+            font-size: 14px;
+        }
+
+        .result-item {
+            margin-bottom: 30px;
+        }
+
+        .result-url {
+            font-size: 14px;
+            color: #202124;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .result-title {
+            margin-bottom: 4px;
+        }
+
+        .result-title a {
+            color: #1a0dab;
+            text-decoration: none;
+            font-size: 20px;
+            line-height: 1.3;
+            font-weight: 400;
+        }
+
+        .result-title a:hover {
+            text-decoration: underline;
+        }
+
+        .result-title a:visited {
+            color: #609;
+        }
+
+        .result-snippet {
+            color: #4d5156;
+            font-size: 14px;
+            line-height: 1.58;
+            margin-bottom: 8px;
+        }
+
+        .result-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #70757a;
+        }
+
+        .result-score {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .result-date {
+            color: #70757a;
+        }
+
+        .rss-link {
+            color: #5f6368;
+            text-decoration: none;
+            font-size: 12px;
+            background-color: #f1f3f4;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            transition: background-color 0.2s ease;
+        }
+
+        .rss-link:hover {
+            background-color: #e8eaed;
+            text-decoration: none;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .action-link {
+            color: #5f6368;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+            background-color: #f1f3f4;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            transition: background-color 0.2s ease;
+        }
+
+        .action-link:hover {
+            background-color: #e8eaed;
+            text-decoration: none;
+        }
+
+        /* Page result styling - blue theme */
+        .result-item.page-result {
+            border-left: 3px solid #1a73e8;
+            padding-left: 12px;
+            background-color: #f8fbff;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .result-item.page-result .result-title a {
+            color: #1558d6;
+        }
+
+        .result-item.page-result .result-url {
+            color: #1a73e8;
+            font-weight: 500;
+        }
+
+        /* Site result styling - green theme */
+        .result-item.site-result {
+            border-left: 3px solid #34a853;
+            padding-left: 12px;
+            background-color: #f8fcf9;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .result-item.site-result .result-title a {
+            color: #137333;
+        }
+
+        .result-item.site-result .result-url {
+            color: #34a853;
+            font-weight: 500;
+        }
+
+        /* No results */
+        .no-results {
+            text-align: center;
+            padding: 60px 0;
+            color: #70757a;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 40px 0;
+            color: #70757a;
+            display: none;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 600px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .logo {
+                align-self: flex-start;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .type-tab {
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+        }
+
+        /* Initial state styling */
+        .initial-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .initial-state .logo-large {
+            font-size: 72px;
+            color: #4285f4;
+            margin-bottom: 30px;
+        }
+
+        .initial-state .search-box {
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+            height: 50px;
+            font-size: 18px;
+        }
+
+        .initial-state .type-tabs-large {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .initial-state .type-tab-large {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            background-color: white;
+            color: #5f6368;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .initial-state .type-tab-large.active {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        .initial-state .type-tab-large:hover:not(.active) {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Initial state when no search has been performed -->
+    <div id="initial-state" class="initial-state" {{if .Query}}style="display: none;"{{end}}>
+        <div class="logo-large">blognerd.app</div>
+        <div class="search-container">
+            <input type="text" class="search-box" id="initial-search" placeholder="Search for posts and feeds..." autocomplete="off">
+            <div class="type-tabs-large">
+                <button class="type-tab-large active" data-type="pages">Posts</button>
+                <button class="type-tab-large" data-type="sites">RSS Feeds</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search results state -->
+    <div id="search-state" {{if not .Query}}style="display: none;"{{end}}>
+        <div class="header">
+            <div class="header-content">
+                <a href="/" class="logo">blognerd.app</a>
+                <div class="search-container">
+                    <input type="text" class="search-box" id="search-input" value="{{.Query}}" placeholder="Search for posts and feeds..." autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-types">
+                <div class="type-tab {{if eq .SearchType "pages"}}active{{end}}" data-type="pages">Posts</div>
+                <div class="type-tab {{if eq .SearchType "sites"}}active{{end}}" data-type="sites">RSS Feeds</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group" id="content-filter-group">
+                <span class="filter-label">Content:</span>
+                <select class="filter-select" id="content-filter">
+                    <option value="" {{if eq .SearchContent ""}}selected{{end}}>All</option>
+                    <option value="blogs" {{if eq .SearchContent "blogs"}}selected{{end}}>Blogs</option>
+                    <option value="academic" {{if eq .SearchContent "academic"}}selected{{end}}>Academic</option>
+                    <option value="news" {{if eq .SearchContent "news"}}selected{{end}}>News</option>
+                </select>
+            </div>
+            <div class="filter-group" id="time-filter-group">
+                <span class="filter-label">Time:</span>
+                <select class="filter-select" id="time-filter">
+                    <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
+                    <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
+                    <option value="month" {{if or (eq .SearchTime "month") (and (eq .SearchTime "") (eq .SearchType "pages"))}}selected{{end}}>Past month</option>
+                    <option value="year" {{if eq .SearchTime "year"}}selected{{end}}>Past year</option>
+                </select>
+            </div>
+            <div class="filter-group" id="export-buttons-group" style="display: none;">
+                <button class="export-btn" id="opml-export-btn" onclick="exportOPML()">
+                    📄 Export OPML
+                </button>
+                <button class="export-btn" id="csv-export-btn" onclick="exportCSV()">
+                    📊 Export CSV
+                </button>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <div id="loading" class="loading">Searching...</div>
+            
+            <div id="results">
+                {{if .Results}}
+                    <div class="results-stats">
+                        About {{.TotalResults}} results ({{printf "%.2f" .TimeTaken}} seconds)
+                    </div>
+                    
+                    {{range .Results}}
+                    <div class="result-item {{if .IsFeed}}site-result{{else}}page-result{{end}}">
+                        <div class="result-url">{{.BaseDomain}}{{if and (not .IsFeed) .Date}} • {{.Date}}{{end}}</div>
+                        <div class="result-title">
+                            <a href="{{.URL}}" target="_blank">{{.Title}}</a>
+                        </div>
+                        <div class="result-snippet">{{.Subtitle}}</div>
+                        <div class="result-meta">
+                        </div>
+                        <div class="result-actions">
+                            {{if not .IsFeed}}
+                                <a class="action-link" onclick="searchMoreLike('{{.URL}}')">Similar posts</a>
+                                <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
+                            {{else}}
+                                <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
+                            {{end}}
+                            <a class="action-link" onclick="searchFromSite('{{.OriginalDomain}}')">More from site</a>
+                            {{if and .IsFeed .RSSURL}}
+                                <a href="{{.RSSURL}}" class="action-link" target="_blank">📡 RSS Feed</a>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
+                {{else if .Query}}
+                    <div class="no-results">
+                        <p>No results found for "<strong>{{.Query}}</strong>"</p>
+                        <p>Try different keywords or check your spelling.</p>
+                    </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSearchType = '{{.SearchType}}' || 'pages';
+        let searchTimeout;
+        
+        const initialState = document.getElementById('initial-state');
+        const searchState = document.getElementById('search-state');
+        const initialSearch = document.getElementById('initial-search');
+        const searchInput = document.getElementById('search-input');
+        const loadingDiv = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+
+        // Handle initial search
+        if (initialSearch) {
+            initialSearch.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const query = this.value.trim();
+                    if (query) {
+                        switchToSearchState(query);
+                        performSearch();
+                    }
+                }
+            });
+        }
+
+        // Handle search state search
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                if (this.value.trim() === '') return;
+                
+                searchTimeout = setTimeout(() => {
+                    performSearch();
+                }, 500);
+            });
+
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+        }
+
+        // Handle type tab clicks (both initial and search state)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('type-tab') || e.target.classList.contains('type-tab-large')) {
+                const type = e.target.dataset.type;
+                currentSearchType = type;
+                
+                // Update active state
+                const container = e.target.parentElement;
+                container.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Update filter visibility based on search type
+                updateFilterVisibility();
+                
+                // If we have a search query, perform search
+                const query = (searchInput?.value || initialSearch?.value || '').trim();
+                if (query) {
+                    if (initialState && initialState.style.display !== 'none') {
+                        switchToSearchState(query);
+                    }
+                    performSearch();
+                }
+            }
+        });
+
+        // Handle filter changes
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('filter-select')) {
+                const query = searchInput?.value?.trim();
+                if (query) {
+                    performSearch();
+                }
+            }
+        });
+
+        function switchToSearchState(query) {
+            if (initialState) initialState.style.display = 'none';
+            if (searchState) searchState.style.display = 'block';
+            if (searchInput) searchInput.value = query;
+            
+            // Update search state type tabs
+            document.querySelectorAll('#search-state .type-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === currentSearchType);
+            });
+            
+            // Update filter visibility
+            updateFilterVisibility();
+        }
+
+        function performSearch() {
+            const query = (searchInput?.value || initialSearch?.value || '').trim();
+            if (!query) return;
+
+            if (loadingDiv) loadingDiv.style.display = 'block';
+            if (resultsDiv) resultsDiv.innerHTML = '';
+
+            const params = new URLSearchParams({
+                qry: query,
+                type: currentSearchType,
+                content: document.getElementById('content-filter')?.value || '',
+                time: document.getElementById('time-filter')?.value || ''
+            });
+            
+            fetch('/api/search?' + params.toString())
+                .then(response => response.json())
+                .then(data => {
+                    if (loadingDiv) loadingDiv.style.display = 'none';
+                    displayResults(data);
+                    updateURL(params);
+                })
+                .catch(error => {
+                    if (loadingDiv) loadingDiv.style.display = 'none';
+                    console.error('Search error:', error);
+                    if (resultsDiv) resultsDiv.innerHTML = '<div class="no-results">Search failed. Please try again.</div>';
+                });
+        }
+
+        function displayResults(data) {
+            if (!resultsDiv) return;
+            
+            if (data.results && data.results.length > 0) {
+                let html = '<div class="results-stats">About ' + 
+                          data.total_results + ' results (' + data.time_taken.toFixed(2) + ' seconds)</div>';
+                
+                data.results.forEach(result => {
+                    const siteClass = result.is_feed_search ? 'site-result' : 'page-result';
+                    const dateStr = (!result.is_feed_search && result.date) ? ` • ${result.date}` : '';
+                    html += `<div class="result-item ${siteClass}">
+                        <div class="result-url">${result.basedomain}${dateStr}</div>
+                        <div class="result-title"><a href="${result.url}" target="_blank">${result.title}</a></div>
+                        <div class="result-snippet">${result.subtitle}</div>
+                        <div class="result-meta">`;
+                    
+                    html += `</div>
+                        <div class="result-actions">`;
+                    
+                    if (!result.is_feed_search) {
+                        html += `<a class="action-link" onclick="searchMoreLike('${result.url}')">Similar posts</a>`;
+                        html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
+                    } else {
+                        html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
+                    }
+                    html += `<a class="action-link" onclick="searchFromSite('${result.original_domain}')">More from site</a>`;
+                    
+                    if (result.is_feed_search && result.rss_url) {
+                        html += `<a href="${result.rss_url}" class="rss-link" target="_blank">📡 RSS Feed</a>`;
+                    }
+                    html += `</div></div>`;
+                });
+                
+                resultsDiv.innerHTML = html;
+            } else {
+                const query = searchInput?.value || initialSearch?.value || '';
+                resultsDiv.innerHTML = `<div class="no-results">
+                    <p>No results found for "<strong>${query}</strong>"</p>
+                    <p>Try different keywords or check your spelling.</p>
+                </div>`;
+            }
+        }
+
+        function updateURL(params) {
+            const newURL = window.location.pathname + '?' + params.toString();
+            history.pushState(null, '', newURL);
+        }
+
+        function cleanURL(url) {
+            // Remove http:// and https:// schemes
+            url = url.replace(/^https?:\/\//, '');
+            // Remove www. prefix
+            url = url.replace(/^www\./, '');
+            // Remove trailing slash
+            url = url.replace(/\/$/, '');
+            return url;
+        }
+
+        function updateFilterVisibility(skipTimeDefault = false) {
+            const exportGroup = document.getElementById('export-buttons-group');
+            const contentGroup = document.getElementById('content-filter-group');
+            const timeGroup = document.getElementById('time-filter-group');
+            const timeFilter = document.getElementById('time-filter');
+            
+            if (currentSearchType === 'sites') {
+                // RSS Feeds: show export buttons, hide content and time filters
+                if (exportGroup) exportGroup.style.display = 'flex';
+                if (contentGroup) contentGroup.style.display = 'none';
+                if (timeGroup) timeGroup.style.display = 'none';
+            } else {
+                // Posts: hide export buttons, show content and time filters
+                if (exportGroup) exportGroup.style.display = 'none';
+                if (contentGroup) contentGroup.style.display = 'flex';
+                if (timeGroup) timeGroup.style.display = 'flex';
+                
+                // Set default time to "month" if no time is currently selected, unless explicitly skipped
+                if (!skipTimeDefault && timeFilter && timeFilter.value === '') {
+                    timeFilter.value = 'month';
+                }
+            }
+        }
+
+        function exportOPML() {
+            const query = (searchInput?.value || initialSearch?.value || '').trim();
+            if (!query) {
+                alert('Please perform a feed search first');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                qry: query,
+                type: currentSearchType,
+                content: document.getElementById('content-filter')?.value || '',
+                time: document.getElementById('time-filter')?.value || ''
+            });
+            
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/export/opml?' + params.toString();
+            link.download = 'feeds.opml';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportCSV() {
+            const query = (searchInput?.value || initialSearch?.value || '').trim();
+            if (!query) {
+                alert('Please perform a feed search first');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                qry: query,
+                type: currentSearchType,
+                content: document.getElementById('content-filter')?.value || '',
+                time: document.getElementById('time-filter')?.value || ''
+            });
+            
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/export/csv?' + params.toString();
+            link.download = 'feeds.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function searchMoreLike(url) {
+            const newQuery = 'like:' + url;
+            if (searchInput) searchInput.value = newQuery;
+            if (initialSearch) initialSearch.value = newQuery;
+            
+            // This function is now only for similar posts, so always switch to pages
+            currentSearchType = 'pages';
+            document.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === 'pages');
+            });
+            
+            // Update filter visibility
+            updateFilterVisibility();
+            
+            if (initialState && initialState.style.display !== 'none') {
+                switchToSearchState(newQuery);
+            }
+            
+            performSearch();
+        }
+
+        function searchSimilarBlogs(domain) {
+            // Clean the domain to remove https:// etc for blog similarity
+            const cleanDomain = cleanURL(domain);
+            const newQuery = 'like:' + cleanDomain;
+            if (searchInput) searchInput.value = newQuery;
+            if (initialSearch) initialSearch.value = newQuery;
+            
+            // Switch to sites/feeds to show similar blogs
+            currentSearchType = 'sites';
+            document.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === 'sites');
+            });
+            
+            // Update filter visibility
+            updateFilterVisibility();
+            
+            if (initialState && initialState.style.display !== 'none') {
+                switchToSearchState(newQuery);
+            }
+            
+            performSearch();
+        }
+
+
+        function searchFromSite(domain) {
+            // Use the original domain exactly as stored in database for accurate site: matching
+            const newQuery = 'site:' + domain;
+            if (searchInput) searchInput.value = newQuery;
+            if (initialSearch) initialSearch.value = newQuery;
+            
+            // Always switch to posts/content to show posts from this site
+            currentSearchType = 'pages';
+            document.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === 'pages');
+            });
+            
+            // Reset time filter to "Any time" and content filter to "All" first
+            const timeFilter = document.getElementById('time-filter');
+            const contentFilter = document.getElementById('content-filter');
+            if (timeFilter) timeFilter.value = '';
+            if (contentFilter) contentFilter.value = '';
+            
+            // Update filter visibility to show posts toolbar, skipping the time default
+            updateFilterVisibility(true);
+            
+            if (initialState && initialState.style.display !== 'none') {
+                switchToSearchState(newQuery);
+            }
+            
+            performSearch();
+        }
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(event) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const query = urlParams.get('qry') || '';
+            const type = urlParams.get('type') || 'pages';
+            const content = urlParams.get('content') || '';
+            const time = urlParams.get('time') || '';
+            
+            // Update current search type
+            currentSearchType = type;
+            
+            // Update UI state based on URL parameters
+            if (query) {
+                // Switch to search state if we have a query
+                if (initialState && initialState.style.display !== 'none') {
+                    switchToSearchState(query);
+                }
+                
+                // Update search input
+                if (searchInput) searchInput.value = query;
+                
+                // Update type tabs
+                document.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.type === type);
+                });
+                
+                // Update filter dropdowns
+                const contentFilter = document.getElementById('content-filter');
+                const timeFilter = document.getElementById('time-filter');
+                if (contentFilter) contentFilter.value = content;
+                if (timeFilter) timeFilter.value = time;
+                
+                // Update filter visibility
+                updateFilterVisibility();
+                
+                // Perform search with current parameters
+                performSearch();
+            } else {
+                // No query, show initial state
+                if (initialState) initialState.style.display = 'block';
+                if (searchState) searchState.style.display = 'none';
+                if (initialSearch) initialSearch.value = '';
+                
+                // Update type tabs for initial state
+                document.querySelectorAll('.type-tab-large').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.type === type);
+                });
+            }
+        });
+
+        // Initialize filter visibility on page load
+        updateFilterVisibility();
+        
+        // Load default results on page load if no query
+        if (!"{{.Query}}" && initialState && initialState.style.display !== 'none') {
+            // Show initial empty state - no automatic search
+        }
+    </script>
+</body>
+</html>
