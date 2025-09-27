@@ -111,8 +111,13 @@ func (pc *PineconeClient) Query(namespace string, embedding []float64, filters m
 }
 
 func (pc *PineconeClient) GetEmbedding(id string) ([]float64, error) {
-	// Fetch vector from Pinecone by ID
-	url := fmt.Sprintf("%s/vectors/fetch?ids=%s&namespace=%s", pc.host, id, pc.index)
+	// Fetch vector from Pinecone by ID using default namespace
+	return pc.GetEmbeddingFromNamespace(id, pc.index)
+}
+
+func (pc *PineconeClient) GetEmbeddingFromNamespace(id string, namespace string) ([]float64, error) {
+	// Fetch vector from Pinecone by ID from specific namespace
+	url := fmt.Sprintf("%s/vectors/fetch?ids=%s&namespace=%s", pc.host, id, namespace)
 	
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

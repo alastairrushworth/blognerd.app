@@ -25,3 +25,20 @@ secrets.toml
 
 # ignore venv
 llama-env/*
+
+# Go build artifacts
+blognerd-server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test binary, built with `go test -c`
+*.test
+
+# Go coverage files
+*.out
+
+# Vendor directory
+vendor/
