@@ -305,6 +305,61 @@
             text-decoration: none;
         }
 
+        /* Toggle switch styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            margin-left: 8px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #1a73e8;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .toggle-slider:hover {
+            background-color: #bbb;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:hover {
+            background-color: #1558d6;
+        }
+
         /* Page result styling - blue theme */
         .result-item.page-result {
             border-left: 3px solid #1a73e8;
@@ -340,6 +395,7 @@
             color: #34a853;
             font-weight: 500;
         }
+
 
         /* No results */
         .no-results {
@@ -659,6 +715,18 @@
                         <option value="year" {{if eq .SearchTime "year"}}selected{{end}}>Past year</option>
                     </select>
                 </div>
+                <div class="filter-group" id="sort-filter-group">
+                    <span class="filter-label">Sort by time:</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sort-time-checkbox" onchange="toggleSort()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="filter-group" id="toggle-posts-group" style="display: none;">
+                    <button class="export-btn" id="toggle-posts-btn" onclick="togglePosts()">
+                        📄 Show Latest Posts
+                    </button>
+                </div>
                 <div class="filter-group" id="export-buttons-group" style="display: none;">
                     <button class="export-btn" id="opml-export-btn" onclick="exportOPML()">
                         📄 Export OPML
@@ -723,6 +791,8 @@
     <script>
         let currentSearchType = '{{.SearchType}}' || 'pages';
         let searchTimeout;
+        let showPosts = false;
+        let sortByTime = false;
         
         const initialState = document.getElementById('initial-state');
         const searchState = document.getElementById('search-state');
@@ -829,6 +899,16 @@
                 time: document.getElementById('time-filter')?.value || ''
             });
             
+            // Add include_posts parameter for RSS feeds when toggle is enabled
+            if (currentSearchType === 'sites' && showPosts) {
+                params.set('include_posts', 'true');
+            }
+            
+            // Add sort parameter for posts
+            if (currentSearchType === 'pages' && sortByTime) {
+                params.set('sort', 'time');
+            }
+            
             fetch('/api/search?' + params.toString())
                 .then(response => response.json())
                 .then(data => {
@@ -851,29 +931,50 @@
                           data.total_results + ' results (' + data.time_taken.toFixed(2) + ' seconds)</div>';
                 
                 data.results.forEach(result => {
-                    const siteClass = result.is_feed_search ? 'site-result' : 'page-result';
-                    const dateStr = (!result.is_feed_search && result.date) ? ` • ${result.date}` : '';
-                    html += `<div class="result-item ${siteClass}">
-                        <div class="result-url">${result.basedomain}${dateStr}</div>
-                        <div class="result-title"><a href="${result.url}" target="_blank">${result.title}</a></div>
-                        <div class="result-snippet">${result.subtitle}</div>
-                        <div class="result-meta">`;
-                    
-                    html += `</div>
-                        <div class="result-actions">`;
-                    
-                    if (!result.is_feed_search) {
-                        html += `<a class="action-link" onclick="searchMoreLike('${result.url}')">Similar posts</a>`;
-                        html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
+                    // If this is a feed search with posts toggled, show posts instead of feeds
+                    if (result.is_feed_search && showPosts && result.latest_post_title) {
+                        // Display as a post result
+                        const postDateStr = result.latest_post_date ? ` • ${result.latest_post_date}` : '';
+                        html += `<div class="result-item page-result">
+                            <div class="result-url">${result.basedomain}${postDateStr}</div>
+                            <div class="result-title">
+                                <a href="${result.latest_post_url}" target="_blank">${result.latest_post_title}</a>
+                            </div>
+                            <div class="result-snippet">${result.latest_post_snippet || ''}</div>
+                            <div class="result-meta"></div>
+                            <div class="result-actions">
+                                <a class="action-link" onclick="searchMoreLike('${result.latest_post_url}')">Similar posts</a>
+                                <a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>
+                                <a class="action-link" onclick="searchFromSite('${result.original_domain}')">More from site</a>
+                            </div>
+                        </div>`;
+                    } else if (result.is_feed_search && showPosts && !result.latest_post_title) {
+                        // Skip feeds that don't have latest posts when in posts mode
+                        return;
                     } else {
-                        html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
+                        // Normal display (feeds or regular posts)
+                        const siteClass = result.is_feed_search ? 'site-result' : 'page-result';
+                        const dateStr = (!result.is_feed_search && result.date) ? ` • ${result.date}` : '';
+                        html += `<div class="result-item ${siteClass}">
+                            <div class="result-url">${result.basedomain}${dateStr}</div>
+                            <div class="result-title"><a href="${result.url}" target="_blank">${result.title}</a></div>
+                            <div class="result-snippet">${result.subtitle}</div>
+                            <div class="result-meta"></div>
+                            <div class="result-actions">`;
+                        
+                        if (!result.is_feed_search) {
+                            html += `<a class="action-link" onclick="searchMoreLike('${result.url}')">Similar posts</a>`;
+                            html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
+                        } else {
+                            html += `<a class="action-link" onclick="searchSimilarBlogs('${result.original_domain}')">Similar blogs</a>`;
+                        }
+                        html += `<a class="action-link" onclick="searchFromSite('${result.original_domain}')">More from site</a>`;
+                        
+                        if (result.is_feed_search && result.rss_url) {
+                            html += `<a href="${result.rss_url}" class="rss-link" target="_blank">📡 RSS Feed</a>`;
+                        }
+                        html += `</div></div>`;
                     }
-                    html += `<a class="action-link" onclick="searchFromSite('${result.original_domain}')">More from site</a>`;
-                    
-                    if (result.is_feed_search && result.rss_url) {
-                        html += `<a href="${result.rss_url}" class="rss-link" target="_blank">📡 RSS Feed</a>`;
-                    }
-                    html += `</div></div>`;
                 });
                 
                 resultsDiv.innerHTML = html;
@@ -903,22 +1004,60 @@
 
         function updateFilterVisibility(skipTimeDefault = false) {
             const exportGroup = document.getElementById('export-buttons-group');
+            const togglePostsGroup = document.getElementById('toggle-posts-group');
             const contentGroup = document.getElementById('content-filter-group');
             const timeGroup = document.getElementById('time-filter-group');
+            const sortGroup = document.getElementById('sort-filter-group');
             const timeFilter = document.getElementById('time-filter');
             
             if (currentSearchType === 'sites') {
-                // RSS Feeds: show export buttons, hide content and time filters
+                // RSS Feeds: show toggle posts and export buttons, hide content, time and sort filters
+                if (togglePostsGroup) togglePostsGroup.style.display = 'flex';
                 if (exportGroup) exportGroup.style.display = 'flex';
                 if (contentGroup) contentGroup.style.display = 'none';
                 if (timeGroup) timeGroup.style.display = 'none';
+                if (sortGroup) sortGroup.style.display = 'none';
             } else {
-                // Posts: hide export buttons, show content and time filters
+                // Posts: hide toggle posts and export buttons, show content, time and sort filters
+                if (togglePostsGroup) togglePostsGroup.style.display = 'none';
                 if (exportGroup) exportGroup.style.display = 'none';
                 if (contentGroup) contentGroup.style.display = 'flex';
                 if (timeGroup) timeGroup.style.display = 'flex';
+                if (sortGroup) sortGroup.style.display = 'flex';
                 
                 // Keep time filter as is - don't force a default value
+            }
+        }
+
+        function togglePosts() {
+            showPosts = !showPosts;
+            const toggleBtn = document.getElementById('toggle-posts-btn');
+            
+            if (showPosts) {
+                toggleBtn.textContent = '📄 Show Feeds';
+                toggleBtn.style.backgroundColor = '#1a73e8';
+                toggleBtn.style.color = 'white';
+            } else {
+                toggleBtn.textContent = '📄 Show Latest Posts';
+                toggleBtn.style.backgroundColor = '#f1f3f4';
+                toggleBtn.style.color = '#5f6368';
+            }
+            
+            // Re-run search with new toggle state
+            const query = searchInput?.value?.trim();
+            if (query) {
+                performSearch();
+            }
+        }
+
+        function toggleSort() {
+            const checkbox = document.getElementById('sort-time-checkbox');
+            sortByTime = checkbox.checked;
+            
+            // Re-run search with new sort order
+            const query = searchInput?.value?.trim();
+            if (query) {
+                performSearch();
             }
         }
 
