@@ -3,11 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>blognerd.app</title>
+    <title>BlogNerd - Search RSS Feeds & Blog Posts | Discover Quality Content</title>
+    <meta name="description" content="Discover and search through thousands of RSS feeds and blog posts. Find quality content from blogs, academic sources, and news sites. Export feeds to OPML and CSV formats.">
+    <meta name="keywords" content="RSS feeds, blog search, content discovery, RSS search engine, blog posts, feed aggregator, OPML export">
+    <link rel="canonical" href="https://blognerd.app/">
+    
+    <!-- Open Graph meta tags for social sharing -->
+    <meta property="og:title" content="BlogNerd - Search RSS Feeds & Blog Posts">
+    <meta property="og:description" content="Discover and search through thousands of RSS feeds and blog posts. Find quality content from blogs, academic sources, and news sites.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://blognerd.app/">
+    <meta property="og:image" content="https://blognerd.app/static/rss.png">
+    <meta property="og:site_name" content="BlogNerd">
+    
+    <!-- Twitter Card meta tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="BlogNerd - Search RSS Feeds & Blog Posts">
+    <meta name="twitter:description" content="Discover and search through thousands of RSS feeds and blog posts. Find quality content from blogs, academic sources, and news sites.">
+    <meta name="twitter:image" content="https://blognerd.app/static/rss.png">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/static/rss.png">
     
+    <!-- Structured Data JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "BlogNerd",
+        "url": "https://blognerd.app/",
+        "description": "Search and discover RSS feeds and blog posts from thousands of quality sources",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://blognerd.app/?qry={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "BlogNerd",
+            "url": "https://blognerd.app/"
+        }
+    }
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRPEST2NTE"></script>
     <script>
@@ -707,7 +748,7 @@
                     </select>
                 </div>
                 <div class="filter-group" id="time-filter-group">
-                    <span class="filter-label">Time:</span>
+                    <span class="filter-label">Since:</span>
                     <select class="filter-select" id="time-filter">
                         <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
                         <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
