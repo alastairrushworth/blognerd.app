@@ -332,17 +332,19 @@
         .rss-feed-link {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: #1a73e8;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             background-color: #f8fbff;
-            padding: 8px 12px;
-            border-radius: 20px;
+            padding: 4px 8px;
+            border-radius: 12px;
             border: 1px solid #dadce0;
             transition: all 0.2s ease;
             margin-left: 16px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .rss-feed-link:hover {
@@ -357,8 +359,8 @@
         }
 
         .rss-icon {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             fill: currentColor;
         }
 
@@ -366,9 +368,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 0;
-            border-bottom: 1px solid #f0f0f0;
-            margin-bottom: 16px;
+            padding: 4px 0;
+            margin-bottom: 4px;
+            gap: 12px;
+        }
+
+        .results-header.hide-rss .rss-feed-link {
+            display: none;
         }
 
         .results-stats {
@@ -614,21 +620,15 @@
                 font-size: 13px;
             }
             
-            .results-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-            
             .rss-feed-link {
-                margin-left: 0;
-                font-size: 13px;
-                padding: 6px 10px;
+                margin-left: 8px;
+                font-size: 12px;
+                padding: 3px 6px;
             }
             
             .rss-icon {
-                width: 14px;
-                height: 14px;
+                width: 12px;
+                height: 12px;
             }
         }
         
@@ -702,20 +702,15 @@
                 height: 50px;
             }
             
-            .results-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-            
             .rss-feed-link {
-                font-size: 12px;
-                padding: 4px 8px;
+                font-size: 11px;
+                padding: 2px 5px;
+                margin-left: 6px;
             }
             
             .rss-icon {
-                width: 12px;
-                height: 12px;
+                width: 10px;
+                height: 10px;
             }
         }
 
@@ -864,7 +859,7 @@
                 
                 <div id="results">
                     {{if .Results}}
-                        <div class="results-header">
+                        <div class="results-header{{if eq .SearchType "sites"}} hide-rss{{end}}">
                             <div class="results-stats">
                                 About {{.TotalResults}} results ({{printf "%.2f" .TimeTaken}} seconds)
                             </div>
@@ -872,7 +867,7 @@
                                 <svg class="rss-icon" viewBox="0 0 24 24">
                                     <path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248S0 22.546 0 20.752s1.456-3.248 3.252-3.248 3.251 1.454 3.251 3.248zM1.677 6.155v4.301c7.017 0 12.696 5.679 12.696 12.696h4.301c0-9.404-7.593-17-17-17zM1.677.003v4.301C12.083 4.304 20.321 12.54 20.321 23h4.301C24.622 11.228 13.395.003 1.677.003z"/>
                                 </svg>
-                                RSS Feed
+                                RSS feed
                             </a>
                         </div>
                         
@@ -1057,13 +1052,17 @@
             if (!resultsDiv) return;
             
             if (data.results && data.results.length > 0) {
-                let html = '<div class="results-header">' +
+                // Check if we should hide RSS link for feeds search
+                const hideRss = currentSearchType === 'sites';
+                const headerClass = hideRss ? 'results-header hide-rss' : 'results-header';
+                
+                let html = '<div class="' + headerClass + '">' +
                           '<div class="results-stats">About ' + 
                           data.total_results + ' results (' + data.time_taken.toFixed(2) + ' seconds)</div>' +
                           '<a href="#" id="rss-feed-link" class="rss-feed-link" onclick="openRSSFeed()" title="Subscribe to RSS feed for this search">' +
                           '<svg class="rss-icon" viewBox="0 0 24 24">' +
                           '<path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248S0 22.546 0 20.752s1.456-3.248 3.252-3.248 3.251 1.454 3.251 3.248zM1.677 6.155v4.301c7.017 0 12.696 5.679 12.696 12.696h4.301c0-9.404-7.593-17-17-17zM1.677.003v4.301C12.083 4.304 20.321 12.54 20.321 23h4.301C24.622 11.228 13.395.003 1.677.003z"/>' +
-                          '</svg>RSS Feed</a></div>';
+                          '</svg>RSS</a></div>';
                 
                 data.results.forEach(result => {
                     // If this is a feed search with posts toggled, show posts instead of feeds
