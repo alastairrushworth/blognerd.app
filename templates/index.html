@@ -329,6 +329,54 @@
             margin-top: 8px;
         }
 
+        .rss-feed-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: #f8fbff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid #dadce0;
+            transition: all 0.2s ease;
+            margin-left: 16px;
+        }
+
+        .rss-feed-link:hover {
+            background-color: #e8f0fe;
+            border-color: #1a73e8;
+            text-decoration: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .rss-feed-link:active {
+            background-color: #d2e3fc;
+        }
+
+        .rss-icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 16px;
+        }
+
+        .results-stats {
+            color: #70757a;
+            font-size: 14px;
+            margin: 0;
+        }
+
         .action-link {
             color: #5f6368;
             text-decoration: none;
@@ -565,6 +613,23 @@
                 padding: 0 12px;
                 font-size: 13px;
             }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .rss-feed-link {
+                margin-left: 0;
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .rss-icon {
+                width: 14px;
+                height: 14px;
+            }
         }
         
         /* Extra small mobile screens */
@@ -635,6 +700,22 @@
             .logo-large-icon {
                 width: 50px;
                 height: 50px;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .rss-feed-link {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            
+            .rss-icon {
+                width: 12px;
+                height: 12px;
             }
         }
 
@@ -783,8 +864,16 @@
                 
                 <div id="results">
                     {{if .Results}}
-                        <div class="results-stats">
-                            About {{.TotalResults}} results ({{printf "%.2f" .TimeTaken}} seconds)
+                        <div class="results-header">
+                            <div class="results-stats">
+                                About {{.TotalResults}} results ({{printf "%.2f" .TimeTaken}} seconds)
+                            </div>
+                            <a href="#" id="rss-feed-link" class="rss-feed-link" onclick="openRSSFeed()" title="Subscribe to RSS feed for this search">
+                                <svg class="rss-icon" viewBox="0 0 24 24">
+                                    <path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248S0 22.546 0 20.752s1.456-3.248 3.252-3.248 3.251 1.454 3.251 3.248zM1.677 6.155v4.301c7.017 0 12.696 5.679 12.696 12.696h4.301c0-9.404-7.593-17-17-17zM1.677.003v4.301C12.083 4.304 20.321 12.54 20.321 23h4.301C24.622 11.228 13.395.003 1.677.003z"/>
+                                </svg>
+                                RSS Feed
+                            </a>
                         </div>
                         
                         {{range .Results}}
@@ -968,8 +1057,13 @@
             if (!resultsDiv) return;
             
             if (data.results && data.results.length > 0) {
-                let html = '<div class="results-stats">About ' + 
-                          data.total_results + ' results (' + data.time_taken.toFixed(2) + ' seconds)</div>';
+                let html = '<div class="results-header">' +
+                          '<div class="results-stats">About ' + 
+                          data.total_results + ' results (' + data.time_taken.toFixed(2) + ' seconds)</div>' +
+                          '<a href="#" id="rss-feed-link" class="rss-feed-link" onclick="openRSSFeed()" title="Subscribe to RSS feed for this search">' +
+                          '<svg class="rss-icon" viewBox="0 0 24 24">' +
+                          '<path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248S0 22.546 0 20.752s1.456-3.248 3.252-3.248 3.251 1.454 3.251 3.248zM1.677 6.155v4.301c7.017 0 12.696 5.679 12.696 12.696h4.301c0-9.404-7.593-17-17-17zM1.677.003v4.301C12.083 4.304 20.321 12.54 20.321 23h4.301C24.622 11.228 13.395.003 1.677.003z"/>' +
+                          '</svg>RSS Feed</a></div>';
                 
                 data.results.forEach(result => {
                     // If this is a feed search with posts toggled, show posts instead of feeds
@@ -1381,6 +1475,35 @@
             
             // Initialize filter visibility
             updateFilterVisibility();
+        }
+        
+        function openRSSFeed() {
+            const query = (searchInput?.value || initialSearch?.value || '').trim();
+            if (!query) {
+                alert('Please perform a search first');
+                return false;
+            }
+
+            const params = new URLSearchParams({
+                qry: query,
+                type: currentSearchType,
+                content: document.getElementById('content-filter')?.value || '',
+                time: document.getElementById('time-filter')?.value || ''
+            });
+            
+            // Add include_posts parameter for RSS feeds when toggle is enabled
+            if (currentSearchType === 'sites' && showPosts) {
+                params.set('include_posts', 'true');
+            }
+            
+            // Add sort parameter for posts
+            if (currentSearchType === 'pages' && sortByTime) {
+                params.set('sort', 'time');
+            }
+            
+            const rssURL = '/rss?' + params.toString();
+            window.open(rssURL, '_blank');
+            return false;
         }
         
         // Initialize the page
