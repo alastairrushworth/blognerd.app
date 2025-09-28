@@ -822,21 +822,12 @@
             if (loadingDiv) loadingDiv.style.display = 'block';
             if (resultsDiv) resultsDiv.innerHTML = '';
 
-            const timeFilterValue = document.getElementById('time-filter')?.value || '';
-            const contentFilterValue = document.getElementById('content-filter')?.value || '';
-            
-            console.log('DEBUG: Time filter value:', timeFilterValue);
-            console.log('DEBUG: Content filter value:', contentFilterValue);
-            console.log('DEBUG: Search type:', currentSearchType);
-            
             const params = new URLSearchParams({
                 qry: query,
                 type: currentSearchType,
-                content: contentFilterValue,
-                time: timeFilterValue
+                content: document.getElementById('content-filter')?.value || '',
+                time: document.getElementById('time-filter')?.value || ''
             });
-            
-            console.log('DEBUG: API URL:', '/api/search?' + params.toString());
             
             fetch('/api/search?' + params.toString())
                 .then(response => response.json())

@@ -10,8 +10,9 @@
 *.numbers
 *.pdf
 
-# 
+# Python artifacts (if any remain)
 *.pyc
+__pycache__/
 .DS_Store
 
 # places not to track json
