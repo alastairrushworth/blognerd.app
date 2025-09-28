@@ -1187,9 +1187,17 @@
             const type = urlParams.get('type') || 'pages';
             const content = urlParams.get('content') || '';
             const time = urlParams.get('time') || '';
+            const sort = urlParams.get('sort');
             
             // Update current search type
             currentSearchType = type;
+            
+            // Update sort state
+            sortByTime = (sort === 'time');
+            const sortCheckbox = document.getElementById('sort-time-checkbox');
+            if (sortCheckbox) {
+                sortCheckbox.checked = sortByTime;
+            }
             
             // Update UI state based on URL parameters
             if (query) {
@@ -1272,19 +1280,70 @@
             }
         }
         
-        // Check if this is a page refresh (not a navigation)
-        if (performance.navigation.type === performance.navigation.TYPE_RELOAD || 
-            performance.getEntriesByType("navigation")[0].type === "reload") {
-            clearAllSettingsOnRefresh();
+        // Initialize page based on URL parameters
+        function initializePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const query = urlParams.get('qry') || '{{.Query}}';
+            const type = urlParams.get('type') || '{{.SearchType}}' || 'pages';
+            const content = urlParams.get('content') || '{{.SearchContent}}';
+            const time = urlParams.get('time') || '{{.SearchTime}}';
+            const sort = urlParams.get('sort');
+            
+            // Update current search type
+            currentSearchType = type;
+            
+            // Update sort state
+            sortByTime = (sort === 'time');
+            const sortCheckbox = document.getElementById('sort-time-checkbox');
+            if (sortCheckbox) {
+                sortCheckbox.checked = sortByTime;
+            }
+            
+            if (query) {
+                // We have a query, set up search state
+                if (initialState) initialState.style.display = 'none';
+                if (searchState) searchState.style.display = 'block';
+                if (searchInput) searchInput.value = query;
+                
+                // Update type tabs
+                document.querySelectorAll('.type-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.type === type);
+                });
+                
+                // Update filter dropdowns
+                const contentFilter = document.getElementById('content-filter');
+                const timeFilter = document.getElementById('time-filter');
+                if (contentFilter) contentFilter.value = content;
+                if (timeFilter) timeFilter.value = time;
+                
+                // Update filter visibility
+                updateFilterVisibility();
+                
+                // Perform search automatically
+                performSearch();
+            } else {
+                // No query, show initial state
+                if (initialState) initialState.style.display = 'block';
+                if (searchState) searchState.style.display = 'none';
+                
+                // Update type tabs for initial state
+                document.querySelectorAll('.type-tab-large').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.type === type);
+                });
+                
+                // Check if this is a page refresh (not a navigation) and clear settings
+                if (performance.navigation.type === performance.navigation.TYPE_RELOAD || 
+                    performance.getEntriesByType("navigation")[0].type === "reload") {
+                    clearAllSettingsOnRefresh();
+                }
+            }
+            
+            // Initialize filter visibility
+            updateFilterVisibility();
         }
         
-        // Initialize filter visibility on page load
-        updateFilterVisibility();
-        
-        // Load default results on page load if no query
-        if (!"{{.Query}}" && initialState && initialState.style.display !== 'none') {
-            // Show initial empty state - no automatic search
-        }
+        // Initialize the page
+        initializePage();
     </script>
 </body>
 </html>
