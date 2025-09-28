@@ -27,6 +27,11 @@ type SearchResult struct {
 	IsFeed        bool    `json:"is_feed_search"`
 	RSSURL        string  `json:"rss_url"`
 	OriginalDomain string  `json:"original_domain"`
+	// Latest post fields (only populated for feeds when include_posts=true)
+	LatestPostTitle    string `json:"latest_post_title,omitempty"`
+	LatestPostURL      string `json:"latest_post_url,omitempty"`
+	LatestPostDate     string `json:"latest_post_date,omitempty"`
+	LatestPostSnippet  string `json:"latest_post_snippet,omitempty"`
 }
 
 type SearchResponse struct {
@@ -219,6 +224,8 @@ func (app *App) performSearch(query string, params map[string][]string) ([]Searc
 	searchType := getStringDefault(getParam(params, "type"), "pages")
 	content := getParam(params, "content")
 	timeFilter := getParam(params, "time")
+	includePosts := getParam(params, "include_posts") == "true"
+	sortBy := getParam(params, "sort")
 
 	if searchType == "sites" {
 		searchQuery += " type:feeds"
@@ -237,6 +244,26 @@ func (app *App) performSearch(query string, params map[string][]string) ([]Searc
 	if err != nil {
 		log.Printf("Search error: %v", err)
 		return []SearchResult{}, 0.0
+	}
+
+	// If this is a feed search and include_posts is true, fetch latest posts
+	if searchType == "sites" && includePosts && len(results) > 0 {
+		latestPosts := app.getLatestPostsForFeeds(results)
+		
+		// Populate latest post fields for each feed result
+		for i := range results {
+			if latestPost, exists := latestPosts[results[i].OriginalDomain]; exists {
+				results[i].LatestPostTitle = latestPost.Title
+				results[i].LatestPostURL = latestPost.URL
+				results[i].LatestPostDate = latestPost.Date
+				results[i].LatestPostSnippet = latestPost.Subtitle
+			}
+		}
+	}
+
+	// Apply sorting for posts (not feeds)
+	if searchType == "pages" && sortBy == "time" && len(results) > 0 {
+		app.sortResultsByTime(results)
 	}
 
 	timeTaken := time.Since(start).Seconds()
@@ -403,6 +430,103 @@ func (app *App) searchContent(query string, maxResults int) ([]SearchResult, err
 	}
 
 	return results, nil
+}
+
+// getLatestPostsForFeeds fetches the latest post for each feed's base URL
+func (app *App) getLatestPostsForFeeds(feedResults []SearchResult) map[string]SearchResult {
+	latestPosts := make(map[string]SearchResult)
+	
+	// Use a generic embedding for filtering (we only care about base_url filtering)
+	genericEmbedding, err := app.voyageAPI.GetEmbedding("content")
+	if err != nil {
+		log.Printf("Error getting generic embedding for latest posts: %v", err)
+		return latestPosts
+	}
+	
+	// Query latest post for each feed (limit to first 20 feeds for performance)
+	maxFeeds := 20
+	if len(feedResults) < maxFeeds {
+		maxFeeds = len(feedResults)
+	}
+	
+	for i := 0; i < maxFeeds; i++ {
+		feed := feedResults[i]
+		baseURL := feed.OriginalDomain
+		
+		if baseURL == "" {
+			continue
+		}
+		
+		// Create filter for this specific base_url
+		filters := map[string]interface{}{
+			"base_url": map[string]interface{}{"$eq": baseURL},
+		}
+		
+		// Query content namespace for posts from this base URL
+		results, err := app.pineconeAPI.Query("blaze-content-v3", genericEmbedding, filters, 50)
+		if err != nil {
+			log.Printf("Error querying latest posts for %s: %v", baseURL, err)
+			continue
+		}
+		
+		if len(results) == 0 {
+			continue
+		}
+		
+		// Sort results by date to find the latest
+		sort.Slice(results, func(i, j int) bool {
+			dateI := parseTimeFromMetadata(results[i].Metadata)
+			dateJ := parseTimeFromMetadata(results[j].Metadata)
+			return dateI.After(dateJ) // Most recent first
+		})
+		
+		// Get the latest post
+		latestResult := results[0]
+		latestPost := SearchResult{
+			URL:      latestResult.ID,
+			Title:    getMetadataString(latestResult.Metadata, "title"),
+			Subtitle: getMetadataString(latestResult.Metadata, "subtitle"),
+			Date:     formatDate(getMetadataString(latestResult.Metadata, "dt_published")),
+		}
+		
+		latestPosts[baseURL] = latestPost
+	}
+	
+	return latestPosts
+}
+
+// sortResultsByTime sorts search results by publication date (most recent first)
+func (app *App) sortResultsByTime(results []SearchResult) {
+	sort.Slice(results, func(i, j int) bool {
+		dateI := parseDate(results[i].Date)
+		dateJ := parseDate(results[j].Date)
+		return dateI.After(dateJ) // Most recent first
+	})
+}
+
+// parseDate parses various date formats and returns a time.Time
+func parseDate(dateStr string) time.Time {
+	if dateStr == "" {
+		return time.Time{} // Return zero time for empty dates
+	}
+	
+	// Try multiple date formats
+	formats := []string{
+		"2006-01-02", // Our standard format
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05",
+		"2006-01-02 15:04:05",
+	}
+	
+	for _, format := range formats {
+		if t, err := time.Parse(format, dateStr); err == nil {
+			return t
+		}
+	}
+	
+	return time.Time{} // Return zero time if parsing fails
 }
 
 
