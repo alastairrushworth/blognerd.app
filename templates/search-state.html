@@ -1,0 +1,112 @@
+<!-- Search results state -->
+<div id="search-state" {{if not .Query}}style="display: none;"{{end}}>
+    <div class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <img src="/static/rss.png" alt="RSS" class="logo-icon">
+                blognerd.app
+            </a>
+            <div class="search-container">
+                <input type="text" class="search-box" id="search-input" value="{{.Query}}" placeholder="Search for posts and feeds..." autocomplete="off">
+            </div>
+        </div>
+        
+        <div class="search-types">
+            <div class="type-tab {{if eq .SearchType "pages"}}active{{end}}" data-type="pages">Posts</div>
+            <div class="type-tab {{if eq .SearchType "sites"}}active{{end}}" data-type="sites">RSS Feeds</div>
+            <div class="type-tab {{if eq .SearchType "custom"}}active{{end}}" data-type="custom">Custom RSS</div>
+        </div>
+    </div>
+    
+    <div class="filters">
+        <div class="filter-group" id="content-filter-group">
+            <span class="filter-label">Content:</span>
+            <select class="filter-select" id="content-filter">
+                <option value="" {{if eq .SearchContent ""}}selected{{end}}>All</option>
+                <option value="blogs" {{if eq .SearchContent "blogs"}}selected{{end}}>Blogs</option>
+                <option value="academic" {{if eq .SearchContent "academic"}}selected{{end}}>Academic</option>
+                <option value="news" {{if eq .SearchContent "news"}}selected{{end}}>News</option>
+            </select>
+        </div>
+        <div class="filter-group" id="time-filter-group">
+            <span class="filter-label">Since:</span>
+            <select class="filter-select" id="time-filter">
+                <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
+                <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
+                <option value="month" {{if eq .SearchTime "month"}}selected{{end}}>Past month</option>
+                <option value="year" {{if eq .SearchTime "year"}}selected{{end}}>Past year</option>
+            </select>
+        </div>
+        <div class="filter-group" id="sort-filter-group">
+            <span class="filter-label">Sort by time:</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="sort-time-checkbox" onchange="toggleSort()">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div class="filter-group" id="toggle-posts-group" style="display: none;">
+            <button class="export-btn" id="toggle-posts-btn" onclick="togglePosts()">
+                📄 Show Latest Posts
+            </button>
+        </div>
+        <div class="filter-group" id="export-buttons-group" style="display: none;">
+            <button class="export-btn" id="opml-export-btn" onclick="exportOPML()">
+                📄 Export OPML
+            </button>
+            <button class="export-btn" id="csv-export-btn" onclick="exportCSV()">
+                📊 Export CSV
+            </button>
+        </div>
+    </div>
+
+    <div class="results-container">
+        <div id="loading" class="loading">Searching...</div>
+        
+        <div id="results">
+            {{if .Results}}
+                <div class="results-header{{if eq .SearchType "sites"}} hide-rss{{end}}">
+                    <div class="results-stats">
+                        About {{.TotalResults}} results ({{printf "%.2f" .TimeTaken}} seconds)
+                    </div>
+                    <a href="#" id="rss-feed-link" class="rss-feed-link" onclick="openRSSFeed()" title="Subscribe to RSS feed for this search">
+                        <svg class="rss-icon" viewBox="0 0 24 24">
+                            <path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248S0 22.546 0 20.752s1.456-3.248 3.252-3.248 3.251 1.454 3.251 3.248zM1.677 6.155v4.301c7.017 0 12.696 5.679 12.696 12.696h4.301c0-9.404-7.593-17-17-17zM1.677.003v4.301C12.083 4.304 20.321 12.54 20.321 23h4.301C24.622 11.228 13.395.003 1.677.003z"/>
+                        </svg>
+                        RSS feed
+                    </a>
+                </div>
+                
+                {{range .Results}}
+                <div class="result-item {{if .IsFeed}}site-result{{else}}page-result{{end}}">
+                    <div class="result-url">{{.BaseDomain}}{{if and (not .IsFeed) .Date}} • {{.Date}}{{end}}</div>
+                    <div class="result-title">
+                        <a href="{{.URL}}" target="_blank">{{.Title}}</a>
+                    </div>
+                    <div class="result-snippet">{{.Subtitle}}</div>
+                    <div class="result-meta">
+                    </div>
+                    <div class="result-actions">
+                        {{if not .IsFeed}}
+                            <a class="action-link" onclick="searchMoreLike('{{.URL}}')">Similar posts</a>
+                            <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
+                        {{else}}
+                            <a class="action-link" onclick="searchSimilarBlogs('{{.OriginalDomain}}')">Similar blogs</a>
+                        {{end}}
+                        <a class="action-link" onclick="searchFromSite('{{.OriginalDomain}}')">More from site</a>
+                        {{if and .IsFeed .RSSURL}}
+                            <a href="{{.RSSURL}}" class="action-link" target="_blank">📡 RSS Feed</a>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+            {{else if .Query}}
+                <div class="no-results">
+                    <p>No results found for "<strong>{{.Query}}</strong>"</p>
+                    <p>Try different keywords or check your spelling.</p>
+                </div>
+            {{end}}
+        </div>
+    </div>
+
+    {{template "rss-builder.html"}}
+</div>
