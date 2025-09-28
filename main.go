@@ -226,11 +226,9 @@ func (app *App) performSearch(query string, params map[string][]string) ([]Searc
 		if content != "" {
 			searchQuery += " type:" + content
 		}
-		// Default to last month for posts if no time filter specified, except for site: searches
+		// Add time filter only if explicitly specified
 		if timeFilter != "" {
 			searchQuery += " since:last_" + timeFilter
-		} else if !strings.Contains(searchQuery, "site:") {
-			searchQuery += " since:last_month"
 		}
 	}
 

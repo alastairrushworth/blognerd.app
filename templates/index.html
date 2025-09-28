@@ -61,6 +61,7 @@
             align-items: center;
             gap: 8px;
             line-height: 1;
+            height: 44px;
         }
 
         .logo-icon {
@@ -390,21 +391,21 @@
         /* Mobile responsive */
         @media (max-width: 600px) {
             .header-content {
-                gap: 16px;
-                padding: 0 16px;
+                gap: 12px;
+                padding: 0 12px;
                 flex-wrap: nowrap;
             }
             
             .logo {
-                font-size: 20px;
+                font-size: 18px;
                 min-width: fit-content;
                 gap: 6px;
                 flex-shrink: 0;
             }
             
             .logo-icon {
-                width: 24px;
-                height: 24px;
+                width: 22px;
+                height: 22px;
                 align-self: center;
             }
             
@@ -418,29 +419,125 @@
                 width: auto;
                 flex: 1;
                 min-width: 0;
+                padding: 0 12px;
             }
             
             .filters {
-                padding: 12px 16px;
-                gap: 8px;
-                flex-wrap: nowrap;
+                padding: 8px 12px;
+                gap: 6px;
+                flex-wrap: wrap;
+                overflow-x: auto;
             }
             
             .filter-group {
                 flex-wrap: nowrap;
                 min-width: fit-content;
                 flex-shrink: 0;
+                white-space: nowrap;
             }
             
             .filter-select {
-                min-width: 80px;
+                min-width: 70px;
                 font-size: 12px;
                 flex-shrink: 0;
+                padding: 4px 6px;
             }
 
             .type-tab {
-                font-size: 14px;
-                padding: 10px 12px;
+                font-size: 13px;
+                padding: 8px 10px;
+                white-space: nowrap;
+            }
+            
+            .search-types {
+                padding: 0 12px;
+                overflow-x: auto;
+            }
+            
+            .export-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+            
+            .results-container {
+                padding: 0 12px;
+            }
+            
+            .footer-content {
+                padding: 0 12px;
+                font-size: 13px;
+            }
+        }
+        
+        /* Extra small mobile screens */
+        @media (max-width: 480px) {
+            .header-content {
+                gap: 8px;
+                padding: 0 8px;
+            }
+            
+            .logo {
+                font-size: 16px;
+                gap: 4px;
+            }
+            
+            .logo-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .search-box {
+                padding: 0 10px;
+                height: 40px;
+            }
+            
+            .filters {
+                padding: 6px 8px;
+                gap: 4px;
+            }
+            
+            .filter-select {
+                min-width: 60px;
+                font-size: 11px;
+                padding: 3px 5px;
+            }
+            
+            .filter-label {
+                font-size: 12px;
+            }
+            
+            .type-tab {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+            
+            .search-types {
+                padding: 0 8px;
+            }
+            
+            .results-container {
+                padding: 0 8px;
+            }
+            
+            .footer-content {
+                padding: 0 8px;
+                font-size: 12px;
+            }
+            
+            .initial-state {
+                padding: 60px 8px;
+            }
+            
+            .initial-state .logo-large {
+                font-size: 48px;
+                margin-bottom: 20px;
+                gap: 12px;
+            }
+            
+            .logo-large-icon {
+                width: 50px;
+                height: 50px;
             }
         }
 
@@ -558,7 +655,7 @@
                     <select class="filter-select" id="time-filter">
                         <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
                         <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
-                        <option value="month" {{if or (eq .SearchTime "month") (and (eq .SearchTime "") (eq .SearchType "pages"))}}selected{{end}}>Past month</option>
+                        <option value="month" {{if eq .SearchTime "month"}}selected{{end}}>Past month</option>
                         <option value="year" {{if eq .SearchTime "year"}}selected{{end}}>Past year</option>
                     </select>
                 </div>
@@ -725,12 +822,21 @@
             if (loadingDiv) loadingDiv.style.display = 'block';
             if (resultsDiv) resultsDiv.innerHTML = '';
 
+            const timeFilterValue = document.getElementById('time-filter')?.value || '';
+            const contentFilterValue = document.getElementById('content-filter')?.value || '';
+            
+            console.log('DEBUG: Time filter value:', timeFilterValue);
+            console.log('DEBUG: Content filter value:', contentFilterValue);
+            console.log('DEBUG: Search type:', currentSearchType);
+            
             const params = new URLSearchParams({
                 qry: query,
                 type: currentSearchType,
-                content: document.getElementById('content-filter')?.value || '',
-                time: document.getElementById('time-filter')?.value || ''
+                content: contentFilterValue,
+                time: timeFilterValue
             });
+            
+            console.log('DEBUG: API URL:', '/api/search?' + params.toString());
             
             fetch('/api/search?' + params.toString())
                 .then(response => response.json())
@@ -821,10 +927,7 @@
                 if (contentGroup) contentGroup.style.display = 'flex';
                 if (timeGroup) timeGroup.style.display = 'flex';
                 
-                // Set default time to "month" if no time is currently selected, unless explicitly skipped
-                if (!skipTimeDefault && timeFilter && timeFilter.value === '') {
-                    timeFilter.value = 'month';
-                }
+                // Keep time filter as is - don't force a default value
             }
         }
 
@@ -935,7 +1038,7 @@
             const timeFilter = document.getElementById('time-filter');
             const contentFilter = document.getElementById('content-filter');
             if (timeFilter) timeFilter.value = '';
-            if (contentFilter) contentFilter.value = 'all';
+            if (contentFilter) contentFilter.value = '';
             
             // Update filter visibility to show posts toolbar, skipping the time default
             updateFilterVisibility(true);
@@ -1012,12 +1115,12 @@
             const timeFilter = document.getElementById('time-filter');
             const contentFilter = document.getElementById('content-filter');
             if (timeFilter) {
-                timeFilter.value = 'month';
-                timeFilter.dispatchEvent(new Event('change', { bubbles: true }));
+                timeFilter.value = '';
+                timeFilter.selectedIndex = 0; // Explicitly select first option
             }
             if (contentFilter) {
-                contentFilter.value = 'all';
-                contentFilter.dispatchEvent(new Event('change', { bubbles: true }));
+                contentFilter.value = '';
+                contentFilter.selectedIndex = 0; // Explicitly select first option ("All")
             }
             
             // Reset search type to posts
