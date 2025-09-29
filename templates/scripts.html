@@ -26,6 +26,11 @@
         // Zoom functionality
         let zoomLevel = 1;
         let canvasScale = 1;
+        
+        // Canvas panning functionality
+        let canvasOffset = { x: 0, y: 0 };
+        let isPanning = false;
+        let panStart = { x: 0, y: 0 };
         const minZoom = 0.25;
         const maxZoom = 3;
         const zoomStep = 0.25;
@@ -625,13 +630,6 @@
         
         // Node type configurations
         const nodeTypes = {
-            'rss-source': {
-                icon: '📡',
-                title: 'RSS Source',
-                inputs: ['URL'],
-                hasOutput: true,
-                color: '#4CAF50'
-            },
             'search-source': {
                 icon: '🔍',
                 title: 'Search Source',
@@ -639,9 +637,9 @@
                 hasOutput: true,
                 color: '#2196F3'
             },
-            'content-filter': {
+            'text-filter': {
                 icon: '🔤',
-                title: 'Content Filter',
+                title: 'Text Filter',
                 inputs: ['Pattern', 'Type', 'Field', 'Mode'],
                 hasInput: true,
                 hasOutput: true,
@@ -650,7 +648,7 @@
             'sort': {
                 icon: '⬇️',
                 title: 'Sort',
-                inputs: ['Field', 'Order'],
+                inputs: ['Field'],
                 hasInput: true,
                 hasOutput: true,
                 color: '#795548'
@@ -690,9 +688,9 @@
                 e.preventDefault();
                 const nodeType = e.dataTransfer.getData('text/plain');
                 const rect = canvas.getBoundingClientRect();
-                // Account for zoom when calculating position
-                const x = (e.clientX - rect.left + canvas.scrollLeft) / canvasScale;
-                const y = (e.clientY - rect.top + canvas.scrollTop) / canvasScale;
+                // Account for zoom and pan offset when calculating position
+                const x = ((e.clientX - rect.left) - canvasOffset.x) / canvasScale;
+                const y = ((e.clientY - rect.top) - canvasOffset.y) / canvasScale;
                 createNode(nodeType, x, y);
             });
             
@@ -704,6 +702,36 @@
                     clearConnectionVisuals();
                     connectionStart = null;
                     clearConnectionStatus();
+                }
+            });
+            
+            // Add panning functionality to canvas container
+            const canvasContainer = document.querySelector('.builder-canvas-container');
+            
+            canvasContainer.addEventListener('mousedown', function(e) {
+                // Only start panning if clicking on the container itself or canvas background
+                if (e.target === canvasContainer || e.target === canvas) {
+                    isPanning = true;
+                    panStart.x = e.clientX - canvasOffset.x;
+                    panStart.y = e.clientY - canvasOffset.y;
+                    canvasContainer.classList.add('panning');
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (isPanning) {
+                    canvasOffset.x = e.clientX - panStart.x;
+                    canvasOffset.y = e.clientY - panStart.y;
+                    updateCanvasTransform();
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('mouseup', function(e) {
+                if (isPanning) {
+                    isPanning = false;
+                    canvasContainer.classList.remove('panning');
                 }
             });
         }
@@ -724,10 +752,10 @@
             let inputsHTML = '';
             if (config.inputs) {
                 config.inputs.forEach(input => {
-                    if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order') {
+                    if (input === 'Type' || input === 'Mode' || input === 'Field') {
                         let options = '';
                         if (input === 'Type') {
-                            if (nodeType === 'content-filter') {
+                            if (nodeType === 'text-filter') {
                                 options = '<option value="keyword">Keyword</option><option value="regex">Regular Expression</option>';
                             } else {
                                 options = '<option value="pages">Posts</option><option value="sites">RSS Feeds</option>';
@@ -735,9 +763,11 @@
                         } else if (input === 'Mode') {
                             options = '<option value="include">Include</option><option value="exclude">Exclude</option>';
                         } else if (input === 'Field') {
-                            options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
-                        } else if (input === 'Order') {
-                            options = '<option value="desc">Newest First</option><option value="asc">Oldest First</option>';
+                            if (nodeType === 'text-filter') {
+                                options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                            } else {
+                                options = '<option value="timestamp">Timestamp</option><option value="relevance">Relevance</option>';
+                            }
                         }
                         inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
                     } else {
@@ -829,23 +859,15 @@
                 const newX = nodeX + deltaX;
                 const newY = nodeY + deltaY;
                 
-                // Constrain to canvas bounds (account for zoom)
-                const canvasRect = canvas.getBoundingClientRect();
-                const nodeRect = node.getBoundingClientRect();
-                const maxX = (canvasRect.width / canvasScale) - (nodeRect.width / canvasScale);
-                const maxY = (canvasRect.height / canvasScale) - (nodeRect.height / canvasScale);
-                
-                const constrainedX = Math.max(0, Math.min(newX, maxX));
-                const constrainedY = Math.max(0, Math.min(newY, maxY));
-                
-                node.style.left = constrainedX + 'px';
-                node.style.top = constrainedY + 'px';
+                // Allow nodes to be positioned anywhere on the expanded canvas
+                node.style.left = newX + 'px';
+                node.style.top = newY + 'px';
 
                 // Update node data
                 const nodeData = rssNodes.get(node.id);
                 if (nodeData) {
-                    nodeData.x = constrainedX;
-                    nodeData.y = constrainedY;
+                    nodeData.x = newX;
+                    nodeData.y = newY;
                 }
 
                 // Throttle connection updates during dragging for better performance
@@ -1243,7 +1265,7 @@
                             source: `Search: ${query}`
                         })) : [];
                         
-                    } else if (source.type === 'rss-source') {
+                    } else if (source.type === 'search-source') {
                         // For RSS sources, we'd need to fetch and parse the RSS feed
                         // For now, we'll skip this or show a placeholder
                         console.warn('RSS source processing not implemented yet');
@@ -1261,7 +1283,7 @@
             
             // Apply content filters
             for (const filter of workflow.filters) {
-                if (filter.type === 'content-filter') {
+                if (filter.type === 'text-filter') {
                     const pattern = filter.inputs.pattern || '';
                     const mode = filter.inputs.mode || 'include';
                     const field = filter.inputs.field || 'title';
@@ -1305,9 +1327,9 @@
             let output = null;
 
             rssNodes.forEach(nodeData => {
-                if (nodeData.type === 'rss-source' || nodeData.type === 'search-source') {
+                if (nodeData.type === 'search-source') {
                     sources.push(nodeData);
-                } else if (nodeData.type === 'content-filter') {
+                } else if (nodeData.type === 'text-filter') {
                     filters.push(nodeData);
                 } else if (nodeData.type === 'sort' || nodeData.type === 'limit') {
                     processors.push(nodeData);
@@ -1341,7 +1363,7 @@
                         description: `Sample description for ${source.type} content. This would be the actual content from the RSS feed or search results.`,
                         link: `https://example.com/article-${index}-${i}`,
                         pubDate: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-                        source: source.type === 'rss-source' ? (source.inputs.url || 'RSS Feed') : 'Search Results'
+                        source: 'Search Results'
                     });
                 }
             });
@@ -1495,10 +1517,10 @@
             let inputsHTML = '';
             if (config.inputs) {
                 config.inputs.forEach(input => {
-                    if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order') {
+                    if (input === 'Type' || input === 'Mode' || input === 'Field') {
                         let options = '';
                         if (input === 'Type') {
-                            if (nodeData.type === 'content-filter') {
+                            if (nodeData.type === 'text-filter') {
                                 options = '<option value="keyword">Keyword</option><option value="regex">Regular Expression</option>';
                             } else {
                                 options = '<option value="pages">Posts</option><option value="sites">RSS Feeds</option>';
@@ -1506,9 +1528,11 @@
                         } else if (input === 'Mode') {
                             options = '<option value="include">Include</option><option value="exclude">Exclude</option>';
                         } else if (input === 'Field') {
-                            options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
-                        } else if (input === 'Order') {
-                            options = '<option value="desc">Newest First</option><option value="asc">Oldest First</option>';
+                            if (nodeData.type === 'text-filter') {
+                                options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                            } else {
+                                options = '<option value="timestamp">Timestamp</option><option value="relevance">Relevance</option>';
+                            }
                         }
                         inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
                     } else {
@@ -1544,22 +1568,46 @@
 
         // Generate custom RSS feed
         function generateCustomRSS() {
+            console.log('Generate RSS clicked');
             const workflow = buildWorkflow();
             if (!workflow) {
                 alert('Please create a complete workflow with at least one source and an output node.');
                 return;
             }
 
-            // For now, show the generated URL
+            console.log('Workflow built:', workflow);
+
+            // Create the config data in the format expected by the backend
             const configData = {
                 nodes: Array.from(rssNodes.values()),
                 connections: rssConnections
             };
             
-            const encodedConfig = btoa(JSON.stringify(configData));
-            const rssUrl = `/api/custom-rss?config=${encodedConfig}`;
+            console.log('Config data:', configData);
             
-            alert(`Custom RSS feed URL:\n${window.location.origin}${rssUrl}\n\n(Copy this URL to subscribe to your custom feed)`);
+            try {
+                // Strip out Unicode characters from the config data before encoding
+                const configDataCleaned = JSON.parse(JSON.stringify(configData, (key, value) => {
+                    if (typeof value === 'string') {
+                        // Replace emoji and other Unicode with simple text
+                        return value.replace(/🔍/g, 'Search').replace(/📄/g, 'Output').replace(/[^\x00-\x7F]/g, '');
+                    }
+                    return value;
+                }));
+                
+                const configString = JSON.stringify(configDataCleaned);
+                const encodedConfig = btoa(configString);
+                const rssUrl = `/api/custom-rss?config=${encodedConfig}`;
+                
+                console.log('Generated RSS URL:', rssUrl);
+                
+                // Open the RSS feed in a new window instead of just showing an alert
+                window.open(rssUrl, '_blank');
+                
+            } catch (error) {
+                console.error('Error generating RSS URL:', error);
+                alert('Error generating RSS feed: ' + error.message);
+            }
         }
 
         // Copy RSS URL to clipboard
@@ -1575,7 +1623,17 @@
                 connections: rssConnections
             };
             
-            const encodedConfig = btoa(JSON.stringify(configData));
+            // Strip out Unicode characters from the config data before encoding
+            const configDataCleaned = JSON.parse(JSON.stringify(configData, (key, value) => {
+                if (typeof value === 'string') {
+                    // Replace emoji and other Unicode with simple text
+                    return value.replace(/🔍/g, 'Search').replace(/📄/g, 'Output').replace(/[^\x00-\x7F]/g, '');
+                }
+                return value;
+            }));
+            
+            const configString = JSON.stringify(configDataCleaned);
+            const encodedConfig = btoa(configString);
             const rssUrl = `${window.location.origin}/api/custom-rss?config=${encodedConfig}`;
             
             navigator.clipboard.writeText(rssUrl).then(() => {
@@ -1621,17 +1679,22 @@
             }
         }
 
+        // Canvas transform function
+        function updateCanvasTransform() {
+            if (canvas) {
+                canvas.style.transform = `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasScale})`;
+                canvas.style.transformOrigin = '0 0';
+            }
+        }
+
         // Zoom Functions
         function updateZoom() {
-            if (canvas) {
-                canvas.style.transform = `scale(${canvasScale})`;
-                canvas.style.transformOrigin = '0 0';
-                
-                // Update zoom level display
-                const zoomDisplay = document.getElementById('zoom-level');
-                if (zoomDisplay) {
-                    zoomDisplay.textContent = `${Math.round(canvasScale * 100)}%`;
-                }
+            updateCanvasTransform();
+            
+            // Update zoom level display
+            const zoomDisplay = document.getElementById('zoom-level');
+            if (zoomDisplay) {
+                zoomDisplay.textContent = `${Math.round(canvasScale * 100)}%`;
             }
         }
 
@@ -1651,6 +1714,7 @@
 
         function resetZoom() {
             canvasScale = 1;
+            canvasOffset = { x: 0, y: 0 };
             updateZoom();
         }
 

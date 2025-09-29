@@ -846,6 +846,11 @@
             border-radius: 8px;
             position: relative;
             overflow: hidden;
+            cursor: grab;
+        }
+        
+        .builder-canvas-container.panning {
+            cursor: grabbing;
         }
 
         .canvas-controls {
@@ -870,13 +875,13 @@
         }
 
         .builder-canvas {
-            width: 100%;
-            height: 100%;
+            width: 3000px;
+            height: 2000px;
             position: relative;
             background-image: 
                 radial-gradient(circle, #dadce0 1px, transparent 1px);
             background-size: 20px 20px;
-            overflow: auto;
+            transform-origin: 0 0;
         }
 
         .canvas-node {
