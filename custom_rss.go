@@ -38,6 +38,7 @@ func (app *App) handleCustomRSSFeed(w http.ResponseWriter, r *http.Request) {
 	// Decode the configuration
 	configJSON, err := base64DecodeString(configParam)
 	if err != nil {
+		log.Printf("Error decoding base64 config: %v, input: %s", err, configParam[:min(100, len(configParam))])
 		http.Error(w, "Invalid configuration encoding", http.StatusBadRequest)
 		return
 	}
@@ -101,7 +102,7 @@ func (app *App) processCustomRSSWorkflow(config *CustomRSSConfig) ([]SearchResul
 	// Find source nodes
 	sourceNodes := make([]CustomRSSNode, 0)
 	for _, node := range config.Nodes {
-		if node.Type == "rss-source" || node.Type == "search-source" {
+		if node.Type == "search-source" {
 			sourceNodes = append(sourceNodes, node)
 		}
 	}
@@ -115,10 +116,12 @@ func (app *App) processCustomRSSWorkflow(config *CustomRSSConfig) ([]SearchResul
 		var sourceResults []SearchResult
 		var err error
 
-		if sourceNode.Type == "rss-source" {
-			sourceResults, err = app.processRSSSource(&sourceNode)
-		} else if sourceNode.Type == "search-source" {
+		switch sourceNode.Type {
+		case "search-source":
 			sourceResults, err = app.processSearchSource(&sourceNode)
+		default:
+			log.Printf("Unknown source node type: %s", sourceNode.Type)
+			continue
 		}
 
 		if err != nil {
@@ -138,38 +141,13 @@ func (app *App) processCustomRSSWorkflow(config *CustomRSSConfig) ([]SearchResul
 	return processedResults, nil
 }
 
-// processRSSSource fetches items from an RSS feed source
-func (app *App) processRSSSource(node *CustomRSSNode) ([]SearchResult, error) {
-	urlInterface, exists := node.Inputs["url"]
-	if !exists {
-		return nil, fmt.Errorf("RSS source missing URL input")
-	}
-
-	url, ok := urlInterface.(string)
-	if !ok || url == "" {
-		return nil, fmt.Errorf("RSS source URL must be a non-empty string")
-	}
-
-	// For now, return mock results since we don't have RSS parsing implemented
-	// In a real implementation, you would fetch and parse the RSS feed
-	results := []SearchResult{
-		{
-			URL:         url,
-			Title:       "Sample RSS Feed Item",
-			Subtitle:    "This is a sample item from the RSS feed",
-			Date:        time.Now().Format("2006-01-02"),
-			Score:       1.0,
-			BaseDomain:  cleanURL(url),
-			IsFeed:      false,
-			OriginalDomain: url,
-		},
-	}
-
-	return results, nil
-}
 
 // processSearchSource executes a search query
 func (app *App) processSearchSource(node *CustomRSSNode) ([]SearchResult, error) {
+	if node == nil {
+		return nil, fmt.Errorf("node cannot be nil")
+	}
+
 	queryInterface, exists := node.Inputs["query"]
 	if !exists {
 		return nil, fmt.Errorf("search source missing query input")
@@ -180,11 +158,19 @@ func (app *App) processSearchSource(node *CustomRSSNode) ([]SearchResult, error)
 		return nil, fmt.Errorf("search source query must be a non-empty string")
 	}
 
-	// Get search type
+	// Get search type with validation
 	searchType := "pages" // default
 	if typeInterface, exists := node.Inputs["type"]; exists {
 		if typeStr, ok := typeInterface.(string); ok && typeStr != "" {
-			searchType = typeStr
+			// Validate search type
+			validTypes := map[string]bool{
+				"pages": true, "feeds": true, "blogs": true, "news": true,
+			}
+			if validTypes[typeStr] {
+				searchType = typeStr
+			} else {
+				log.Printf("Invalid search type '%s', using default 'pages'", typeStr)
+			}
 		}
 	}
 
@@ -207,10 +193,8 @@ func (app *App) applyCustomFilters(results []SearchResult, config *CustomRSSConf
 
 		// Apply each filter node
 		for _, node := range config.Nodes {
-			if node.Type == "keyword-filter" {
-				include = app.applyKeywordFilter(&result, &node) && include
-			} else if node.Type == "regex-filter" {
-				include = app.applyRegexFilter(&result, &node) && include
+			if node.Type == "text-filter" {
+				include = app.applyTextFilter(&result, &node) && include
 			}
 		}
 
@@ -222,15 +206,32 @@ func (app *App) applyCustomFilters(results []SearchResult, config *CustomRSSConf
 	return filteredResults
 }
 
-// applyKeywordFilter applies keyword filtering to a result
-func (app *App) applyKeywordFilter(result *SearchResult, node *CustomRSSNode) bool {
-	keywordsInterface, exists := node.Inputs["keywords"]
-	if !exists {
-		return true // No keywords means pass through
+// applyTextFilter applies text filtering (keyword or regex) to a result
+func (app *App) applyTextFilter(result *SearchResult, node *CustomRSSNode) bool {
+	// Get filter type (keyword or regex)
+	filterType := "keyword" // default
+	if typeInterface, exists := node.Inputs["type"]; exists {
+		if typeStr, ok := typeInterface.(string); ok && typeStr != "" {
+			filterType = typeStr
+		}
 	}
 
-	keywords, ok := keywordsInterface.(string)
-	if !ok || keywords == "" {
+	if filterType == "regex" {
+		return app.applyRegexFilter(result, node)
+	} else {
+		return app.applyKeywordFilter(result, node)
+	}
+}
+
+// applyKeywordFilter applies keyword filtering to a result
+func (app *App) applyKeywordFilter(result *SearchResult, node *CustomRSSNode) bool {
+	patternInterface, exists := node.Inputs["pattern"]
+	if !exists {
+		return true // No pattern means pass through
+	}
+
+	pattern, ok := patternInterface.(string)
+	if !ok || pattern == "" {
 		return true
 	}
 
@@ -241,7 +242,7 @@ func (app *App) applyKeywordFilter(result *SearchResult, node *CustomRSSNode) bo
 		}
 	}
 
-	keywordList := strings.Split(strings.ToLower(keywords), ",")
+	keywordList := strings.Split(strings.ToLower(pattern), ",")
 	text := strings.ToLower(result.Title + " " + result.Subtitle)
 
 	hasMatch := false
