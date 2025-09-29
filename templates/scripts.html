@@ -1697,9 +1697,11 @@
             console.log('updateCustomRSSVisibility called, currentSearchType:', currentSearchType);
             const customBuilder = document.getElementById('custom-rss-builder');
             const resultsContainer = document.querySelector('.results-container');
+            const filtersContainer = document.querySelector('.filters');
             
             console.log('customBuilder found:', !!customBuilder);
             console.log('resultsContainer found:', !!resultsContainer);
+            console.log('filtersContainer found:', !!filtersContainer);
             
             if (currentSearchType === 'custom') {
                 if (customBuilder) {
@@ -1716,6 +1718,10 @@
                     console.log('Hiding results container');
                     resultsContainer.style.display = 'none';
                 }
+                if (filtersContainer) {
+                    console.log('Hiding filters container');
+                    filtersContainer.style.display = 'none';
+                }
             } else {
                 if (customBuilder) {
                     console.log('Hiding custom builder');
@@ -1724,6 +1730,10 @@
                 if (resultsContainer) {
                     console.log('Showing results container');
                     resultsContainer.style.display = 'block';
+                }
+                if (filtersContainer) {
+                    console.log('Showing filters container');
+                    filtersContainer.style.display = 'flex';
                 }
             }
         }

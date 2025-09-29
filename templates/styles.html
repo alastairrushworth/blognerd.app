@@ -86,7 +86,6 @@
             padding: 0 20px;
             display: flex;
             gap: 0;
-            border-bottom: 1px solid #dadce0;
         }
 
         .type-tab {
@@ -725,12 +724,7 @@
         }
 
         .builder-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #dadce0;
+            display: none;
         }
 
         .builder-header h2 {
@@ -740,17 +734,18 @@
 
         .builder-actions {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .btn-primary {
             background-color: #1a73e8;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .btn-primary:hover {
@@ -761,10 +756,10 @@
             background-color: white;
             color: #1a73e8;
             border: 1px solid #dadce0;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .btn-secondary:hover {
