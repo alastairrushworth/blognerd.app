@@ -19,11 +19,8 @@ function createNode(nodeType, x, y) {
             if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order') {
                 let options = '';
                 if (input === 'Type') {
-                    if (nodeType === 'content-filter') {
-                        options = '<option value="keyword">Keyword</option><option value="regex">Regular Expression</option>';
-                    } else {
-                        options = '<option value="pages">Posts</option><option value="sites">RSS Feeds</option>';
-                    }
+                    // Type is only for content-filter now
+                    options = '<option value="keyword">Keyword</option><option value="regex">Regular Expression</option>';
                 } else if (input === 'Mode') {
                     options = '<option value="include">Include</option><option value="exclude">Exclude</option>';
                 } else if (input === 'Field') {
@@ -151,11 +148,8 @@ function createNodeFromData(nodeData) {
             if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order') {
                 let options = '';
                 if (input === 'Type') {
-                    if (nodeData.type === 'content-filter') {
-                        options = '<option value="keyword">Keyword</option><option value="regex">Regular Expression</option>';
-                    } else {
-                        options = '<option value="pages">Posts</option><option value="sites">RSS Feeds</option>';
-                    }
+                    // Type is only for content-filter now
+                    options = '<option value="keyword">Keyword</option><option value="regex">Regular Expression</option>';
                 } else if (input === 'Mode') {
                     options = '<option value="include">Include</option><option value="exclude">Exclude</option>';
                 } else if (input === 'Field') {

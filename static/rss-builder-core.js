@@ -19,17 +19,10 @@ const zoomStep = 0.25;
 
 // Node type configurations
 const nodeTypes = {
-    'rss-source': {
-        icon: '📡',
-        title: 'RSS Source',
-        inputs: ['URL'],
-        hasOutput: true,
-        color: '#4CAF50'
-    },
     'search-source': {
         icon: '🔍',
         title: 'Search Source',
-        inputs: ['Query', 'Type'],
+        inputs: ['Query'],
         hasOutput: true,
         color: '#2196F3'
     },
@@ -44,7 +37,7 @@ const nodeTypes = {
     'sort': {
         icon: '⬇️',
         title: 'Sort',
-        inputs: ['Field', 'Order'],
+        inputs: ['Order'],
         hasInput: true,
         hasOutput: true,
         color: '#795548'
