@@ -8,7 +8,7 @@ function buildWorkflow() {
     let output = null;
 
     rssNodes.forEach(nodeData => {
-        if (nodeData.type === 'rss-source' || nodeData.type === 'search-source') {
+        if (nodeData.type === 'search-source') {
             sources.push(nodeData);
         } else if (nodeData.type === 'content-filter') {
             filters.push(nodeData);
@@ -37,17 +37,16 @@ async function processWorkflow(workflow) {
 
             if (source.type === 'search-source') {
                 const query = source.inputs.query || '';
-                const type = source.inputs.type || 'pages';
 
                 if (!query.trim()) {
                     console.warn('Search source has no query configured');
                     continue;
                 }
 
-                // Make API call to the search endpoint
+                // Make API call to the search endpoint (always search for pages/posts)
                 const params = new URLSearchParams();
                 params.set('qry', query);
-                if (type === 'sites') params.set('type', 'feeds');
+                // Type is always 'pages' (posts), no need to set it explicitly
 
                 const response = await fetch(`/api/search?${params.toString()}`);
                 const data = await response.json();
@@ -60,10 +59,6 @@ async function processWorkflow(workflow) {
                     pubDate: result.date || new Date().toISOString(),
                     source: `Search: ${query}`
                 })) : [];
-
-            } else if (source.type === 'rss-source') {
-                console.warn('RSS source processing not implemented yet');
-                continue;
             }
 
             allItems = allItems.concat(items);
@@ -96,12 +91,12 @@ async function processWorkflow(workflow) {
     // Apply processors (sort, limit, etc.)
     for (const processor of workflow.processors) {
         if (processor.type === 'sort') {
-            const field = processor.inputs.field || 'pubDate';
+            // Always sort by pubDate (timestamp), only order is configurable
             const order = processor.inputs.order || 'desc';
 
             processedItems.sort((a, b) => {
-                const aVal = new Date(a[field]);
-                const bVal = new Date(b[field]);
+                const aVal = new Date(a.pubDate);
+                const bVal = new Date(b.pubDate);
                 return order === 'desc' ? bVal - aVal : aVal - bVal;
             });
         } else if (processor.type === 'limit') {
