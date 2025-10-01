@@ -229,14 +229,32 @@ function updateConnections() {
     const canvas = document.getElementById('rss-canvas');
     if (!canvas) return;
 
-    // CRITICAL FIX: Remove ONLY existing connection-line SVG elements
-    // Use a more specific query to avoid accidentally removing other SVG elements
-    const existingLines = canvas.querySelectorAll('svg.connection-line');
-    console.log(`Removing ${existingLines.length} existing connection lines`);
-    existingLines.forEach(line => {
-        console.log(`Removing connection line with id: ${line.getAttribute('data-connection-id')}`);
+    console.log('=== updateConnections called ===');
+    console.log('Total connections in data:', rssConnections.length);
+
+    // CRITICAL FIX: Remove ALL existing connection-line SVG elements
+    // Query for ALL SVGs with the connection-line class
+    const existingLines = Array.from(canvas.querySelectorAll('svg.connection-line'));
+    console.log(`Found ${existingLines.length} existing SVG lines to remove`);
+
+    // Remove each one and verify
+    existingLines.forEach((line, index) => {
+        const connId = line.getAttribute('data-connection-id');
+        console.log(`  Removing SVG #${index + 1} with connection-id: ${connId}`);
         line.remove();
     });
+
+    // Double-check: make sure they're really gone
+    const remainingLines = canvas.querySelectorAll('svg.connection-line');
+    if (remainingLines.length > 0) {
+        console.error(`WARNING: ${remainingLines.length} SVG lines still remain after removal!`);
+        remainingLines.forEach(line => {
+            console.error(`  Orphaned line: ${line.getAttribute('data-connection-id')}`);
+            line.remove(); // Force remove
+        });
+    } else {
+        console.log('✓ All old SVG lines successfully removed');
+    }
 
     // Now create fresh SVG elements for each connection in our data
     console.log(`Creating ${rssConnections.length} new connection lines`);
@@ -252,7 +270,8 @@ function updateConnections() {
         if (!fromPoint || !toPoint) return;
 
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        line.className = 'connection-line';
+        // CRITICAL: For SVG elements, must use setAttribute for class, not className
+        line.setAttribute('class', 'connection-line');
         line.setAttribute('data-connection-id', connection.id);
         line.style.position = 'absolute';
         line.style.pointerEvents = 'none';
@@ -312,6 +331,31 @@ function updateConnections() {
         path.setAttribute('marker-end', `url(#arrowhead-${connection.id})`);
 
         line.appendChild(path);
+
+        // DEBUG: Check if SVG has the right class BEFORE adding to DOM
+        console.log(`  About to append SVG with className: "${line.className.baseVal}"`);
+
         canvas.appendChild(line);
+
+        // DEBUG: Immediately verify it was added
+        const wasAdded = canvas.contains(line);
+        console.log(`  ✓ Created SVG for connection ${connection.id} (${connection.from} → ${connection.to}), wasAdded: ${wasAdded}`);
+
+        // DEBUG: Check if we can query it back
+        const canQuery = canvas.querySelector(`svg.connection-line[data-connection-id="${connection.id}"]`);
+        console.log(`  Can query back: ${!!canQuery}`);
     });
+
+    // Final verification
+    const finalCount = canvas.querySelectorAll('svg.connection-line').length;
+    const allSvgs = canvas.querySelectorAll('svg');
+    console.log(`=== updateConnections complete ===`);
+    console.log(`Canvas element: ${canvas.id}, total children: ${canvas.children.length}`);
+    console.log(`Total SVG elements: ${allSvgs.length}, with .connection-line class: ${finalCount}`);
+    console.log(`Expected: ${rssConnections.length}`);
+
+    if (finalCount !== rssConnections.length) {
+        console.error(`MISMATCH: Created ${rssConnections.length} but found ${finalCount} in DOM!`);
+        console.error(`All SVGs in canvas:`, allSvgs);
+    }
 }
