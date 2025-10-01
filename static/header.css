@@ -1,0 +1,126 @@
+/* Header with logo and search */
+
+.header {
+    padding: 20px 0 0 0;
+    border-bottom: 1px solid #dadce0;
+}
+
+.header-content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 20px;
+    min-height: 60px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 400;
+    color: #4285f4;
+    text-decoration: none;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+    height: 44px;
+}
+
+.logo-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.search-container {
+    flex: 1;
+    position: relative;
+}
+
+.search-box {
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    font-size: 16px;
+    border: 1px solid #dfe1e5;
+    border-radius: 24px;
+    outline: none;
+    box-shadow: none;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.search-box:hover {
+    box-shadow: 0 2px 5px 1px rgba(64,60,67,.16);
+}
+
+.search-box:focus {
+    border-color: #4285f4;
+    box-shadow: 0 2px 5px 1px rgba(64,60,67,.16);
+}
+
+/* Initial state styling */
+.initial-state {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.initial-state .logo-large {
+    font-size: 72px;
+    color: #4285f4;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.logo-large-icon {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.initial-state .search-box {
+    max-width: 500px;
+    margin: 0 auto 30px auto;
+    height: 50px;
+    font-size: 18px;
+}
+
+.initial-state .type-tabs-large {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    max-width: 400px;
+    margin: 0 auto;
+    border: 1px solid #dadce0;
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.initial-state .type-tab-large {
+    flex: 1;
+    padding: 12px 20px;
+    text-align: center;
+    background-color: white;
+    color: #5f6368;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.initial-state .type-tab-large.active {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.initial-state .type-tab-large:hover:not(.active) {
+    background-color: #f8f9fa;
+}
