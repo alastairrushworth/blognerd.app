@@ -156,12 +156,16 @@ function makeDraggable(node) {
             e.preventDefault();
             e.stopPropagation();
 
-            // Clear any pending updates and do a final FULL update ONLY if we actually moved
+            // CRITICAL: Clear any pending position-only updates before doing full rebuild
+            if (node._updateTimeout) {
+                clearTimeout(node._updateTimeout);
+                node._updateTimeout = null;
+                console.log('Cleared pending timeout before full update');
+            }
+
+            // Do a final FULL update ONLY if we actually moved
             if (hasMoved) {
-                if (node._updateTimeout) {
-                    clearTimeout(node._updateTimeout);
-                    node._updateTimeout = null;
-                }
+                console.log('Mouse up: triggering full updateConnections()');
                 updateConnections(); // Full rebuild after drag completes
             }
         }
