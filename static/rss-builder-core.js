@@ -5,16 +5,13 @@ let rssNodes = new Map();
 let rssConnections = [];
 let selectedNode = null;
 let nodeIdCounter = 1;
-let isDraggingNode = false;
 let isDraggingExistingNode = false;
-let dragOffset = { x: 0, y: 0 };
 let isConnecting = false;
 let connectionStart = null;
 const canvas = document.getElementById('rss-canvas');
 const customRSSBuilder = document.getElementById('custom-rss-builder');
 
 // Zoom functionality
-let zoomLevel = 1;
 let canvasScale = 1;
 const minZoom = 0.25;
 const maxZoom = 3;
@@ -72,14 +69,12 @@ const nodeTypes = {
 
 // Show/hide custom RSS builder based on selected tab
 function updateCustomRSSVisibility() {
-    console.log('updateCustomRSSVisibility called, currentSearchType:', currentSearchType);
     const customBuilder = document.getElementById('custom-rss-builder');
     const resultsContainer = document.querySelector('.results-container');
 
     if (currentSearchType === 'custom') {
         if (customBuilder) {
             customBuilder.style.display = 'block';
-            // Initialize palette only once (the function has its own guard)
             initializePalette();
         }
         if (resultsContainer) {
