@@ -172,13 +172,21 @@ function completeConnection(targetNodeId, isTargetInput) {
 // Update connection positions only (lightweight, for during-drag updates)
 function updateConnectionPositionsOnly() {
     rssConnections.forEach(connection => {
+        // CRITICAL: Use a more specific selector to ensure we get exactly ONE line per connection
         const line = document.querySelector(`svg.connection-line[data-connection-id="${connection.id}"]`);
-        if (!line) return;
+
+        if (!line) {
+            console.warn(`No SVG found for connection ${connection.id} during position update`);
+            return;
+        }
 
         const fromNode = document.getElementById(connection.from);
         const toNode = document.getElementById(connection.to);
 
-        if (!fromNode || !toNode) return;
+        if (!fromNode || !toNode) {
+            console.warn(`Missing nodes for connection ${connection.id}`);
+            return;
+        }
 
         const fromNodeX = parseInt(fromNode.style.left) || 0;
         const fromNodeY = parseInt(fromNode.style.top) || 0;
@@ -219,15 +227,19 @@ function updateConnectionPositionsOnly() {
 // Update connection lines (full rebuild, for complete updates)
 function updateConnections() {
     const canvas = document.getElementById('rss-canvas');
-    if (canvas) {
-        canvas.querySelectorAll('.connection-line').forEach(line => line.remove());
-        canvas.querySelectorAll('svg').forEach(svg => {
-            if (svg.classList.contains('connection-line')) {
-                svg.remove();
-            }
-        });
-    }
+    if (!canvas) return;
 
+    // CRITICAL FIX: Remove ONLY existing connection-line SVG elements
+    // Use a more specific query to avoid accidentally removing other SVG elements
+    const existingLines = canvas.querySelectorAll('svg.connection-line');
+    console.log(`Removing ${existingLines.length} existing connection lines`);
+    existingLines.forEach(line => {
+        console.log(`Removing connection line with id: ${line.getAttribute('data-connection-id')}`);
+        line.remove();
+    });
+
+    // Now create fresh SVG elements for each connection in our data
+    console.log(`Creating ${rssConnections.length} new connection lines`);
     rssConnections.forEach(connection => {
         const fromNode = document.getElementById(connection.from);
         const toNode = document.getElementById(connection.to);

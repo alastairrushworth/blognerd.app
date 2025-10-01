@@ -76,31 +76,20 @@ function updateCustomRSSVisibility() {
     const customBuilder = document.getElementById('custom-rss-builder');
     const resultsContainer = document.querySelector('.results-container');
 
-    console.log('customBuilder found:', !!customBuilder);
-    console.log('resultsContainer found:', !!resultsContainer);
-
     if (currentSearchType === 'custom') {
         if (customBuilder) {
-            console.log('Setting customBuilder to block');
             customBuilder.style.display = 'block';
-            // Initialize if first time
-            const canvas = document.getElementById('rss-canvas');
-            if (canvas && canvas.children.length === 0) {
-                console.log('Initializing palette');
-                initializePalette();
-            }
+            // Initialize palette only once (the function has its own guard)
+            initializePalette();
         }
         if (resultsContainer) {
-            console.log('Hiding results container');
             resultsContainer.style.display = 'none';
         }
     } else {
         if (customBuilder) {
-            console.log('Hiding custom builder');
             customBuilder.style.display = 'none';
         }
         if (resultsContainer) {
-            console.log('Showing results container');
             resultsContainer.style.display = 'block';
         }
     }

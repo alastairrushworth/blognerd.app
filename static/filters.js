@@ -8,8 +8,8 @@ function updateFilterVisibility(skipTimeDefault = false) {
     const sortGroup = document.getElementById('sort-filter-group');
     const timeFilter = document.getElementById('time-filter');
 
-    // Update custom RSS builder visibility
-    updateCustomRSSVisibility();
+    // Note: updateCustomRSSVisibility() is called separately by the caller
+    // to avoid multiple calls. Don't call it here.
 
     if (currentSearchType === 'custom') {
         // Custom RSS: hide all filters and search controls

@@ -2,8 +2,14 @@
 
 // Create a new node
 function createNode(nodeType, x, y) {
+    console.log(`=== createNode called ===`);
+    console.log('Type:', nodeType, 'Position:', x, y);
+    console.log('Stack trace:', new Error().stack);
+
     const nodeId = 'node-' + nodeIdCounter++;
     const config = nodeTypes[nodeType];
+
+    console.log('Creating node with ID:', nodeId);
 
     const node = document.createElement('div');
     node.className = 'canvas-node';
@@ -90,6 +96,10 @@ function createNode(nodeType, x, y) {
 
     // Auto-refresh preview when nodes change
     setTimeout(refreshPreview, 100);
+
+    console.log('Node creation complete. Node added to DOM:', !!document.getElementById(nodeId));
+    console.log('Node in data map:', rssNodes.has(nodeId));
+    console.log('Total nodes in map:', rssNodes.size);
 
     return nodeData;
 }
