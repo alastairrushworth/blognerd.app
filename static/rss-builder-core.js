@@ -69,6 +69,10 @@ function updateCustomRSSVisibility() {
     if (currentSearchType === 'custom') {
         if (customBuilder) {
             customBuilder.style.display = 'block';
+            // Initialize RSS builder on first use
+            if (typeof initializeRSSBuilder === 'function') {
+                initializeRSSBuilder();
+            }
             initializePalette();
         }
         if (resultsContainer) {

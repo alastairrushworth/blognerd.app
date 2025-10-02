@@ -222,6 +222,11 @@ func (app *App) performSearch(query string, params map[string][]string) ([]Searc
 		}
 	}
 
+	// Deduplicate posts by title (for pages search only)
+	if searchType == "pages" && len(results) > 0 {
+		results = deduplicateByTitle(results)
+	}
+
 	// Apply sorting for posts (not feeds)
 	if searchType == "pages" && sortBy == "time" && len(results) > 0 {
 		sortResultsByTime(results)

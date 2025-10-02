@@ -7,8 +7,15 @@ import (
 
 // handleHome renders the homepage with search form
 func (app *App) handleHome(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("qry")
+
+	// If no query provided, use default example search
+	if query == "" {
+		query = "embeddings deep dive"
+	}
+
 	data := map[string]interface{}{
-		"Query":        r.URL.Query().Get("qry"),
+		"Query":        query,
 		"SearchType":   getStringDefault(r.URL.Query().Get("type"), "pages"),
 		"SearchContent": r.URL.Query().Get("content"),
 		"SearchTime":   r.URL.Query().Get("time"),
