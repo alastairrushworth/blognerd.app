@@ -401,3 +401,20 @@
     font-size: 11px;
     margin-top: 4px;
 }
+
+.output-count-badge {
+    position: absolute;
+    right: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: 2px solid #1a73e8;
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #1a73e8;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    pointer-events: none;
+}
