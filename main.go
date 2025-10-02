@@ -46,11 +46,13 @@ func main() {
 	// Routes
 	r.HandleFunc("/", app.handleHome).Methods("GET")
 	r.HandleFunc("/search", app.handleSearch).Methods("GET")
+	r.HandleFunc("/custom-rss", app.handleCustomRSSPage).Methods("GET")
 	r.HandleFunc("/api/search", app.handleAPISearch).Methods("GET", "POST")
 	r.HandleFunc("/api/export/opml", app.handleOPMLExport).Methods("GET", "POST")
 	r.HandleFunc("/api/export/csv", app.handleCSVExport).Methods("GET", "POST")
 	r.HandleFunc("/rss", app.handleRSSFeed).Methods("GET")
 	r.HandleFunc("/api/custom-rss", app.handleCustomRSSFeed).Methods("GET")
+	r.HandleFunc("/api/custom-rss/generate", app.handleCustomRSSPost).Methods("POST")
 
 	// Start server
 	port := "8000"

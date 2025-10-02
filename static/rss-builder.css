@@ -82,6 +82,37 @@
     overflow-y: auto;
 }
 
+.language-selector {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #dadce0;
+}
+
+.language-selector label {
+    display: block;
+    font-size: 12px;
+    color: #5f6368;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.language-select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+}
+
+.language-select:focus {
+    outline: none;
+    border-color: #1a73e8;
+}
+
 .builder-sidebar h3 {
     margin: 0 0 15px 0;
     font-size: 16px;
@@ -155,32 +186,18 @@
 
 .builder-canvas-container {
     flex: 1;
-    background: white;
+    display: flex;
+    flex-direction: column;
     border: 1px solid #dadce0;
     border-radius: 8px;
-    position: relative;
     overflow: hidden;
 }
 
-.canvas-controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #dadce0;
-}
-
-.zoom-level {
-    min-width: 50px;
-    text-align: center;
-    font-size: 12px;
-    color: #5f6368;
+.canvas-wrapper {
+    flex: 1;
+    overflow: auto;
+    background: white;
+    position: relative;
 }
 
 .builder-canvas {
@@ -190,7 +207,23 @@
     background-image:
         radial-gradient(circle, #dadce0 1px, transparent 1px);
     background-size: 20px 20px;
-    overflow: auto;
+}
+
+.canvas-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 10px;
+    border-top: 1px solid #dadce0;
+    flex-shrink: 0;
+}
+
+.zoom-level {
+    min-width: 50px;
+    text-align: center;
+    font-size: 12px;
+    color: #5f6368;
 }
 
 .canvas-node {
@@ -288,6 +321,16 @@
 .node-content {
     font-size: 12px;
     color: #5f6368;
+}
+
+.node-content > div:has(select[data-field="since"]),
+.node-content > div:has(select[data-field="lang"]) {
+    display: inline-block;
+    width: 48%;
+}
+
+.node-content > div:has(select[data-field="since"]) {
+    margin-right: 4%;
 }
 
 .node-input {

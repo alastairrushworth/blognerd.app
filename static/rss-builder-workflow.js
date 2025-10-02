@@ -95,7 +95,15 @@ async function processWorkflow(workflow) {
 
                 // Make API call to the search endpoint (always search for pages/posts)
                 const params = new URLSearchParams();
-                params.set('qry', query);
+
+                // Add language to query if specified in the node
+                let finalQuery = query;
+                const language = source.inputs.lang || 'en';
+                if (language) {
+                    finalQuery = `${query} lang:${language}`;
+                }
+
+                params.set('qry', finalQuery);
                 params.set('type', 'pages'); // Explicitly set type to pages
                 params.set('content', ''); // No content filter
 
@@ -412,12 +420,21 @@ function generateCustomRSS() {
         connections: rssConnections
     };
 
-    // Use encodeURIComponent for Unicode-safe encoding
-    const encodedConfig = encodeURIComponent(JSON.stringify(configData));
-    const rssUrl = `/api/custom-rss?config=${encodedConfig}`;
+    // Create a form to POST the config
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/custom-rss';
+    form.target = '_blank';
 
-    // Open the RSS feed in a new tab
-    window.open(rssUrl, '_blank');
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'config';
+    input.value = JSON.stringify(configData);
+
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 }
 
 // Copy RSS URL to clipboard

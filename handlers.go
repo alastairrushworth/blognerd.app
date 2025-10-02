@@ -7,14 +7,42 @@ import (
 
 // handleHome renders the homepage with search form
 func (app *App) handleHome(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("qry")
+
+	// If no query provided, use default example search
+	if query == "" {
+		query = "embeddings deep dive"
+	}
+
 	data := map[string]interface{}{
-		"Query":       r.URL.Query().Get("qry"),
-		"SearchType":  getStringDefault(r.URL.Query().Get("type"), "pages"),
+		"Query":        query,
+		"SearchType":   getStringDefault(r.URL.Query().Get("type"), "pages"),
 		"SearchContent": r.URL.Query().Get("content"),
-		"SearchTime":  r.URL.Query().Get("time"),
-		"Results":     nil,
-		"TimeTaken":   0.0,
+		"SearchTime":   r.URL.Query().Get("time"),
+		"Results":      nil,
+		"TimeTaken":    0.0,
 		"TotalResults": 0,
+		"ShowSearch":   true, // Always show search state, no landing page
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	err := app.templates.ExecuteTemplate(w, "index.html", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// handleCustomRSSPage renders the custom RSS builder page
+func (app *App) handleCustomRSSPage(w http.ResponseWriter, r *http.Request) {
+	data := map[string]interface{}{
+		"Query":        "",
+		"SearchType":   "custom",
+		"SearchContent": "",
+		"SearchTime":   "",
+		"Results":      nil,
+		"TimeTaken":    0.0,
+		"TotalResults": 0,
+		"ShowSearch":   true, // Always show search state
 	}
 
 	w.Header().Set("Content-Type", "text/html")

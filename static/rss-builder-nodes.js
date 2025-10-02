@@ -16,7 +16,7 @@ function createNode(nodeType, x, y) {
     let inputsHTML = '';
     if (config.inputs) {
         config.inputs.forEach(input => {
-            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order' || input === 'Since') {
+            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order' || input === 'Since' || input === 'Lang') {
                 let options = '';
                 if (input === 'Type') {
                     // Type is only for content-filter now
@@ -34,6 +34,8 @@ function createNode(nodeType, x, y) {
                     options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
                 } else if (input === 'Since') {
                     options = '<option value="">Any time</option><option value="week">Past week</option><option value="month">Past month</option><option value="year">Past year</option>';
+                } else if (input === 'Lang') {
+                    options = '<option value="en" selected>en</option><option value="es">es</option><option value="fr">fr</option><option value="de">de</option><option value="it">it</option><option value="pt">pt</option><option value="zh">zh</option><option value="ja">ja</option><option value="ko">ko</option>';
                 }
                 inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
             } else {
@@ -164,7 +166,7 @@ function createNodeFromData(nodeData) {
     let inputsHTML = '';
     if (config.inputs) {
         config.inputs.forEach(input => {
-            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order' || input === 'Since') {
+            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order' || input === 'Since' || input === 'Lang') {
                 let options = '';
                 if (input === 'Type') {
                     // Type is only for content-filter now
@@ -182,6 +184,8 @@ function createNodeFromData(nodeData) {
                     options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
                 } else if (input === 'Since') {
                     options = '<option value="">Any time</option><option value="week">Past week</option><option value="month">Past month</option><option value="year">Past year</option>';
+                } else if (input === 'Lang') {
+                    options = '<option value="en" selected>en</option><option value="es">es</option><option value="fr">fr</option><option value="de">de</option><option value="it">it</option><option value="pt">pt</option><option value="zh">zh</option><option value="ja">ja</option><option value="ko">ko</option>';
                 }
                 inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
             } else {
