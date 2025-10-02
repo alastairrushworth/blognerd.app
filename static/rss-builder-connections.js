@@ -308,6 +308,39 @@ function updateConnections() {
         path.setAttribute('marker-end', `url(#arrowhead-${connection.id})`);
 
         line.appendChild(path);
+
+        // Add count label if available
+        if (typeof connectionCounts !== 'undefined' && connectionCounts.has(connection.id)) {
+            const count = connectionCounts.get(connection.id);
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            const midX = (startX - minX + 20 + endX - minX + 20) / 2;
+            const midY = (startY - minY + 20 + endY - minY + 20) / 2;
+
+            label.setAttribute('x', midX);
+            label.setAttribute('y', midY - 5);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('fill', '#1a73e8');
+            label.setAttribute('font-size', '12');
+            label.setAttribute('font-weight', 'bold');
+            label.setAttribute('class', 'connection-count');
+            label.textContent = count;
+
+            // Add background rectangle for better visibility
+            const bbox = label.getBBox ? label.getBBox() : { x: midX - 10, y: midY - 15, width: 20, height: 14 };
+            const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            bg.setAttribute('x', midX - 12);
+            bg.setAttribute('y', midY - 16);
+            bg.setAttribute('width', '24');
+            bg.setAttribute('height', '16');
+            bg.setAttribute('fill', 'white');
+            bg.setAttribute('stroke', '#1a73e8');
+            bg.setAttribute('stroke-width', '1');
+            bg.setAttribute('rx', '3');
+
+            line.appendChild(bg);
+            line.appendChild(label);
+        }
+
         canvas.appendChild(line);
     });
 }

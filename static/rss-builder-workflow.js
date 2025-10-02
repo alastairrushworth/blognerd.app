@@ -71,9 +71,14 @@ function buildWorkflow() {
     return { sources, filters, processors, output };
 }
 
+// Store connection counts for visualization
+let connectionCounts = new Map();
+
 // Process workflow with real API calls
 async function processWorkflow(workflow) {
     let allProcessedItems = [];
+    connectionCounts.clear(); // Reset counts
+    console.log('processWorkflow: Starting, counts cleared');
 
     // Process each source independently by following its path through the graph
     for (const source of workflow.sources) {
@@ -91,7 +96,8 @@ async function processWorkflow(workflow) {
                 // Make API call to the search endpoint (always search for pages/posts)
                 const params = new URLSearchParams();
                 params.set('qry', query);
-                // Type is always 'pages' (posts), no need to set it explicitly
+                params.set('type', 'pages'); // Explicitly set type to pages
+                params.set('content', ''); // No content filter
 
                 // Add time filter if specified
                 if (source.inputs.since) {
@@ -102,7 +108,7 @@ async function processWorkflow(workflow) {
                 const data = await response.json();
 
                 // Convert search results to RSS item format
-                items = data.results ? data.results.slice(0, 10).map((result, index) => ({
+                items = data.results ? data.results.slice(0, 50).map((result, index) => ({
                     title: result.title,
                     description: result.description || result.title,
                     link: result.url,
@@ -121,20 +127,41 @@ async function processWorkflow(workflow) {
         }
     }
 
+    // Deduplicate items by URL, combining sources
+    const deduplicatedMap = new Map();
+    allProcessedItems.forEach(item => {
+        if (deduplicatedMap.has(item.link)) {
+            // Item already exists, add this source to the sources array
+            const existing = deduplicatedMap.get(item.link);
+            if (!existing.sources) {
+                existing.sources = [existing.source];
+            }
+            if (!existing.sources.includes(item.source)) {
+                existing.sources.push(item.source);
+            }
+        } else {
+            // New item
+            deduplicatedMap.set(item.link, item);
+        }
+    });
+
+    const deduplicatedItems = Array.from(deduplicatedMap.values());
+
     // Sort all items by time descending before returning (for RSS output)
-    allProcessedItems.sort((a, b) => {
+    deduplicatedItems.sort((a, b) => {
         const aTime = new Date(a.pubDate);
         const bTime = new Date(b.pubDate);
         return bTime - aTime; // Descending (newest first)
     });
 
-    return allProcessedItems;
+    return deduplicatedItems;
 }
 
 // Process items through a specific path from source to output
 async function processPath(startNode, items, outputNode) {
     let currentItems = items;
     const visited = new Set();
+    const visitedConnections = new Set();
     const queue = [{ node: startNode, items: currentItems }];
 
     while (queue.length > 0) {
@@ -157,6 +184,17 @@ async function processPath(startNode, items, outputNode) {
             const nextNode = rssNodes.get(conn.to);
             if (!nextNode) continue;
 
+            // Track count of items flowing through THIS connection (before next node processes them)
+            // Only count each connection once per path traversal
+            if (!visitedConnections.has(conn.id)) {
+                visitedConnections.add(conn.id);
+                const countOnConnection = currentItems.length;
+                console.log(`Setting count for connection ${conn.id}: ${countOnConnection} items`);
+                // Set the count (don't accumulate across multiple source processes)
+                connectionCounts.set(conn.id, countOnConnection);
+            }
+
+            // Now apply transformations based on next node type
             let processedItems = currentItems;
 
             // Apply transformations based on node type
@@ -202,6 +240,34 @@ async function processPath(startNode, items, outputNode) {
     return currentItems;
 }
 
+// Update the output node count badge
+function updateOutputNodeCount(count) {
+    // Find the output node
+    let outputNodeId = null;
+    rssNodes.forEach(nodeData => {
+        if (nodeData.type === 'output') {
+            outputNodeId = nodeData.id;
+        }
+    });
+
+    if (!outputNodeId) return;
+
+    const outputNode = document.getElementById(outputNodeId);
+    if (!outputNode) return;
+
+    // Remove existing count badge if any
+    const existingBadge = outputNode.querySelector('.output-count-badge');
+    if (existingBadge) {
+        existingBadge.remove();
+    }
+
+    // Create count badge
+    const badge = document.createElement('div');
+    badge.className = 'output-count-badge';
+    badge.textContent = count;
+    outputNode.appendChild(badge);
+}
+
 // Refresh preview
 function refreshPreview() {
     const preview = document.getElementById('rss-preview');
@@ -211,6 +277,8 @@ function refreshPreview() {
     const workflow = buildWorkflow();
     if (!workflow) {
         preview.innerHTML = '<div class="preview-placeholder">Build your flowchart to see RSS preview</div>';
+        // Clear output node count
+        updateOutputNodeCount(0);
         return;
     }
 
@@ -220,9 +288,14 @@ function refreshPreview() {
     // Process workflow with real data
     processWorkflow(workflow).then(items => {
         displayRSSPreview(items);
+        // Update connections to show the counts
+        updateConnections();
+        // Update output node count
+        updateOutputNodeCount(items.length);
     }).catch(error => {
         console.error('Error processing workflow:', error);
         preview.innerHTML = '<div class="preview-placeholder">Error generating preview. Check your configuration.</div>';
+        updateOutputNodeCount(0);
     });
 }
 
@@ -234,15 +307,22 @@ function displayRSSPreview(items) {
         return;
     }
 
-    const itemsHTML = items.map(item => `
-        <div class="rss-item">
-            <div class="rss-item-title">${item.title}</div>
-            <div class="rss-item-description">${item.description}</div>
-            <div class="rss-item-meta">
-                ${new Date(item.pubDate).toLocaleDateString()} • ${item.source}
+    const itemsHTML = items.map(item => {
+        // Display all sources if item appeared in multiple searches
+        const sourceText = item.sources
+            ? item.sources.join(' + ')
+            : item.source;
+
+        return `
+            <div class="rss-item">
+                <div class="rss-item-title">${item.title}</div>
+                <div class="rss-item-description">${item.description}</div>
+                <div class="rss-item-meta">
+                    ${new Date(item.pubDate).toLocaleDateString()} • ${sourceText}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     preview.innerHTML = itemsHTML;
 }

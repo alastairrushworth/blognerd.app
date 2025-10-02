@@ -56,7 +56,7 @@ const nodeTypes = {
         inputs: [],
         hasInput: true,
         hasOutput: false,
-        color: '#F44336',
+        color: '#1a73e8',
         isCircle: true
     }
 };
