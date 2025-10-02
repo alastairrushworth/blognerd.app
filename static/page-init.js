@@ -37,19 +37,19 @@ function loadDefaultDAG() {
     if (statQueryInput) statQueryInput.value = 'statistics with R';
     if (statSinceSelect) statSinceSelect.value = 'week';
 
-    // Limit 1: 3 items (for data science path)
+    // Limit 1: 10 items (for data science path)
     const dsLimit = createNode('limit', 345, 146);
-    dsLimit.inputs.count = '3';
+    dsLimit.inputs.count = '10';
     const dsLimitElement = document.getElementById(dsLimit.id);
     const dsCountInput = dsLimitElement.querySelector('[data-field="count"]');
-    if (dsCountInput) dsCountInput.value = '3';
+    if (dsCountInput) dsCountInput.value = '10';
 
-    // Limit 2: 2 items (for statistics path)
+    // Limit 2: 10 items (for statistics path)
     const statLimit = createNode('limit', 349, 372);
-    statLimit.inputs.count = '2';
+    statLimit.inputs.count = '10';
     const statLimitElement = document.getElementById(statLimit.id);
     const statCountInput = statLimitElement.querySelector('[data-field="count"]');
-    if (statCountInput) statCountInput.value = '2';
+    if (statCountInput) statCountInput.value = '10';
 
     // Output: RSS
     const output = createNode('output', 668, 276);

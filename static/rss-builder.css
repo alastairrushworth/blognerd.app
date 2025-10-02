@@ -88,6 +88,10 @@
     color: #202124;
 }
 
+.builder-sidebar h3:not(:first-child) {
+    margin-top: 20px;
+}
+
 .node-palette {
     display: flex;
     flex-direction: column;
@@ -261,6 +265,12 @@
     font-size: 14px;
 }
 
+.node-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .node-delete {
     background: none;
     border: none;
@@ -388,6 +398,12 @@
     margin-bottom: 4px;
     color: #1a73e8;
     font-size: 13px;
+    text-decoration: none;
+    display: block;
+}
+
+.rss-item-title:hover {
+    text-decoration: underline;
 }
 
 .rss-item-description {
