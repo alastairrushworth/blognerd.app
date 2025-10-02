@@ -42,20 +42,32 @@ function createNode(nodeType, x, y) {
         });
     }
 
-    node.innerHTML = `
-        <div class="node-header">
-            <div class="node-title">
-                <span>${config.icon}</span>
-                <span>${config.title}</span>
-            </div>
+    // Special handling for circular output node
+    if (config.isCircle) {
+        node.classList.add('canvas-node-circle');
+        node.innerHTML = `
+            <img src="/static/rss.png" alt="RSS" class="node-circle-icon">
             <button class="node-delete" onclick="deleteNode('${nodeId}')">×</button>
-        </div>
-        <div class="node-content">
-            ${inputsHTML}
-        </div>
-        ${config.hasInput ? '<div class="connection-point connection-input"></div>' : ''}
-        ${config.hasOutput ? '<div class="connection-point connection-output"></div>' : ''}
-    `;
+            ${config.hasInput ? '<div class="connection-point connection-input"></div>' : ''}
+        `;
+    } else {
+        node.innerHTML = `
+            <div class="node-header">
+                <div class="node-title">
+                    <span>${config.icon}</span>
+                    <span>${config.title}</span>
+                </div>
+                <button class="node-delete" onclick="deleteNode('${nodeId}')">×</button>
+            </div>
+            <div class="node-content">
+                ${inputsHTML}
+            </div>
+            ${config.hasInput ? '<div class="connection-point connection-input"></div>' : ''}
+            ${config.hasOutput ? '<div class="connection-point connection-output"></div>' : ''}
+            ${config.hasInput && config.hasOutput ? '<div class="connection-point connection-output-top"></div>' : ''}
+            ${config.hasInput && config.hasOutput ? '<div class="connection-point connection-output-bottom"></div>' : ''}
+        `;
+    }
 
     canvas.appendChild(node);
 
@@ -178,20 +190,32 @@ function createNodeFromData(nodeData) {
         });
     }
 
-    node.innerHTML = `
-        <div class="node-header">
-            <div class="node-title">
-                <span>${config.icon}</span>
-                <span>${config.title}</span>
-            </div>
+    // Special handling for circular output node
+    if (config.isCircle) {
+        node.classList.add('canvas-node-circle');
+        node.innerHTML = `
+            <img src="/static/rss.png" alt="RSS" class="node-circle-icon">
             <button class="node-delete" onclick="deleteNode('${nodeData.id}')">×</button>
-        </div>
-        <div class="node-content">
-            ${inputsHTML}
-        </div>
-        ${config.hasInput ? '<div class="connection-point connection-input"></div>' : ''}
-        ${config.hasOutput ? '<div class="connection-point connection-output"></div>' : ''}
-    `;
+            ${config.hasInput ? '<div class="connection-point connection-input"></div>' : ''}
+        `;
+    } else {
+        node.innerHTML = `
+            <div class="node-header">
+                <div class="node-title">
+                    <span>${config.icon}</span>
+                    <span>${config.title}</span>
+                </div>
+                <button class="node-delete" onclick="deleteNode('${nodeData.id}')">×</button>
+            </div>
+            <div class="node-content">
+                ${inputsHTML}
+            </div>
+            ${config.hasInput ? '<div class="connection-point connection-input"></div>' : ''}
+            ${config.hasOutput ? '<div class="connection-point connection-output"></div>' : ''}
+            ${config.hasInput && config.hasOutput ? '<div class="connection-point connection-output-top"></div>' : ''}
+            ${config.hasInput && config.hasOutput ? '<div class="connection-point connection-output-bottom"></div>' : ''}
+        `;
+    }
 
     canvas.appendChild(node);
 

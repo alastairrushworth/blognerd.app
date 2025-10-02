@@ -73,9 +73,9 @@ function buildWorkflow() {
 
 // Process workflow with real API calls
 async function processWorkflow(workflow) {
-    let allItems = [];
+    let allProcessedItems = [];
 
-    // Process each source
+    // Process each source independently by following its path through the graph
     for (const source of workflow.sources) {
         try {
             let items = [];
@@ -112,62 +112,94 @@ async function processWorkflow(workflow) {
                 })) : [];
             }
 
-            allItems = allItems.concat(items);
+            // Process this source's items through its specific path
+            let processedItems = await processPath(source, items, workflow.output);
+            allProcessedItems = allProcessedItems.concat(processedItems);
+
         } catch (error) {
             console.error(`Error processing source ${source.type}:`, error);
         }
     }
 
-    // Apply filters and processors
-    let processedItems = allItems;
+    // Sort all items by time descending before returning (for RSS output)
+    allProcessedItems.sort((a, b) => {
+        const aTime = new Date(a.pubDate);
+        const bTime = new Date(b.pubDate);
+        return bTime - aTime; // Descending (newest first)
+    });
 
-    // Apply content filters
-    for (const filter of workflow.filters) {
-        if (filter.type === 'content-filter') {
-            const pattern = filter.inputs.pattern || '';
-            const mode = filter.inputs.mode || 'include';
-            const field = filter.inputs.field || 'title';
+    return allProcessedItems;
+}
 
-            if (pattern.trim()) {
-                // Always use keyword matching (case-insensitive)
-                const lowerPattern = pattern.toLowerCase();
-                processedItems = processedItems.filter(item => {
-                    const text = (item[field] || '').toLowerCase();
-                    const matches = text.includes(lowerPattern);
-                    return mode === 'include' ? matches : !matches;
-                });
-            }
+// Process items through a specific path from source to output
+async function processPath(startNode, items, outputNode) {
+    let currentItems = items;
+    const visited = new Set();
+    const queue = [{ node: startNode, items: currentItems }];
+
+    while (queue.length > 0) {
+        const { node, items: nodeItems } = queue.shift();
+
+        if (visited.has(node.id)) continue;
+        visited.add(node.id);
+
+        currentItems = nodeItems;
+
+        // If we reached the output, return the items
+        if (node.id === outputNode.id) {
+            return currentItems;
         }
-    }
 
-    // Apply processors (sort, limit, etc.)
-    for (const processor of workflow.processors) {
-        if (processor.type === 'sort') {
-            const field = processor.inputs.field || 'relevance';
-            const order = processor.inputs.order || 'desc';
+        // Find the next node(s) in this path
+        const nextConnections = rssConnections.filter(conn => conn.from === node.id);
 
-            processedItems.sort((a, b) => {
-                let aVal, bVal;
+        for (const conn of nextConnections) {
+            const nextNode = rssNodes.get(conn.to);
+            if (!nextNode) continue;
 
-                if (field === 'time') {
-                    // Sort by timestamp
-                    aVal = new Date(a.pubDate);
-                    bVal = new Date(b.pubDate);
-                } else {
-                    // Sort by relevance score
-                    aVal = a.relevanceScore || 0;
-                    bVal = b.relevanceScore || 0;
+            let processedItems = currentItems;
+
+            // Apply transformations based on node type
+            if (nextNode.type === 'content-filter') {
+                const pattern = nextNode.inputs.pattern || '';
+                const mode = nextNode.inputs.mode || 'include';
+                const field = nextNode.inputs.field || 'title';
+
+                if (pattern.trim()) {
+                    const lowerPattern = pattern.toLowerCase();
+                    processedItems = processedItems.filter(item => {
+                        const text = (item[field] || '').toLowerCase();
+                        const matches = text.includes(lowerPattern);
+                        return mode === 'include' ? matches : !matches;
+                    });
                 }
+            } else if (nextNode.type === 'sort') {
+                const field = nextNode.inputs.field || 'relevance';
+                const order = nextNode.inputs.order || 'desc';
 
-                return order === 'desc' ? bVal - aVal : aVal - bVal;
-            });
-        } else if (processor.type === 'limit') {
-            const count = parseInt(processor.inputs.count) || 10;
-            processedItems = processedItems.slice(0, count);
+                processedItems = [...processedItems].sort((a, b) => {
+                    let aVal, bVal;
+
+                    if (field === 'time') {
+                        aVal = new Date(a.pubDate);
+                        bVal = new Date(b.pubDate);
+                    } else {
+                        aVal = a.relevanceScore || 0;
+                        bVal = b.relevanceScore || 0;
+                    }
+
+                    return order === 'desc' ? bVal - aVal : aVal - bVal;
+                });
+            } else if (nextNode.type === 'limit') {
+                const count = parseInt(nextNode.inputs.count) || 10;
+                processedItems = processedItems.slice(0, count);
+            }
+
+            queue.push({ node: nextNode, items: processedItems });
         }
     }
 
-    return processedItems;
+    return currentItems;
 }
 
 // Refresh preview
