@@ -35,14 +35,16 @@
         </div>
 
         <div class="builder-canvas-container">
+            <div class="canvas-wrapper">
+                <div class="builder-canvas" id="rss-canvas">
+                    <!-- Flowchart nodes will be added here dynamically -->
+                </div>
+            </div>
             <div class="canvas-controls">
                 <button class="btn-small" onclick="zoomIn()">Zoom In (+)</button>
                 <button class="btn-small" onclick="zoomOut()">Zoom Out (-)</button>
                 <button class="btn-small" onclick="resetZoom()">Reset Zoom</button>
                 <span class="zoom-level" id="zoom-level">100%</span>
-            </div>
-            <div class="builder-canvas" id="rss-canvas">
-                <!-- Flowchart nodes will be added here dynamically -->
             </div>
         </div>
 
