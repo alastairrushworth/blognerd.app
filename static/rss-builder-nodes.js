@@ -24,9 +24,14 @@ function createNode(nodeType, x, y) {
                 } else if (input === 'Mode') {
                     options = '<option value="include">Include</option><option value="exclude">Exclude</option>';
                 } else if (input === 'Field') {
-                    options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                    // Field can be for content-filter or sort - check node type
+                    if (nodeType === 'sort') {
+                        options = '<option value="relevance">Relevance</option><option value="time">Time</option>';
+                    } else {
+                        options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                    }
                 } else if (input === 'Order') {
-                    options = '<option value="desc">Newest First</option><option value="asc">Oldest First</option>';
+                    options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
                 }
                 inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
             } else {
@@ -153,9 +158,14 @@ function createNodeFromData(nodeData) {
                 } else if (input === 'Mode') {
                     options = '<option value="include">Include</option><option value="exclude">Exclude</option>';
                 } else if (input === 'Field') {
-                    options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                    // Field can be for content-filter or sort - check node type
+                    if (nodeData.type === 'sort') {
+                        options = '<option value="relevance">Relevance</option><option value="time">Time</option>';
+                    } else {
+                        options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                    }
                 } else if (input === 'Order') {
-                    options = '<option value="desc">Newest First</option><option value="asc">Oldest First</option>';
+                    options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
                 }
                 inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
             } else {

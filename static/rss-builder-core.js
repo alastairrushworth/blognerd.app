@@ -21,14 +21,14 @@ const zoomStep = 0.25;
 const nodeTypes = {
     'search-source': {
         icon: '🔍',
-        title: 'Search Source',
+        title: 'Input',
         inputs: ['Query'],
         hasOutput: true,
         color: '#2196F3'
     },
     'content-filter': {
         icon: '🔤',
-        title: 'Content Filter',
+        title: 'Filter',
         inputs: ['Pattern', 'Type', 'Field', 'Mode'],
         hasInput: true,
         hasOutput: true,
@@ -37,7 +37,7 @@ const nodeTypes = {
     'sort': {
         icon: '⬇️',
         title: 'Sort',
-        inputs: ['Order'],
+        inputs: ['Field', 'Order'],
         hasInput: true,
         hasOutput: true,
         color: '#795548'
