@@ -1,5 +1,45 @@
 // Custom RSS Builder - Workflow Processing and Preview
 
+// Check if there's a connected path from any source to the output
+function isOutputConnected() {
+    // Find the output node
+    let outputNode = null;
+    rssNodes.forEach(nodeData => {
+        if (nodeData.type === 'output') {
+            outputNode = nodeData;
+        }
+    });
+
+    if (!outputNode) return false;
+
+    // Traverse backwards from output to find if any source is connected
+    const visited = new Set();
+    const queue = [outputNode.id];
+
+    while (queue.length > 0) {
+        const currentId = queue.shift();
+        if (visited.has(currentId)) continue;
+        visited.add(currentId);
+
+        const currentNode = rssNodes.get(currentId);
+        if (!currentNode) continue;
+
+        // If we reached a source, the output is connected
+        if (currentNode.type === 'search-source') {
+            return true;
+        }
+
+        // Find all nodes that connect TO this node (inputs)
+        rssConnections.forEach(conn => {
+            if (conn.to === currentId && !visited.has(conn.from)) {
+                queue.push(conn.from);
+            }
+        });
+    }
+
+    return false;
+}
+
 // Build workflow from nodes
 function buildWorkflow() {
     const sources = [];
@@ -20,6 +60,11 @@ function buildWorkflow() {
     });
 
     if (sources.length === 0 || !output) {
+        return null;
+    }
+
+    // Check if output is actually connected to a source
+    if (!isOutputConnected()) {
         return null;
     }
 
@@ -52,12 +97,13 @@ async function processWorkflow(workflow) {
                 const data = await response.json();
 
                 // Convert search results to RSS item format
-                items = data.results ? data.results.slice(0, 10).map(result => ({
+                items = data.results ? data.results.slice(0, 10).map((result, index) => ({
                     title: result.title,
                     description: result.description || result.title,
                     link: result.url,
                     pubDate: result.date || new Date().toISOString(),
-                    source: `Search: ${query}`
+                    source: `Search: ${query}`,
+                    relevanceScore: data.results.length - index  // Higher score = more relevant
                 })) : [];
             }
 
@@ -91,12 +137,22 @@ async function processWorkflow(workflow) {
     // Apply processors (sort, limit, etc.)
     for (const processor of workflow.processors) {
         if (processor.type === 'sort') {
-            // Always sort by pubDate (timestamp), only order is configurable
+            const field = processor.inputs.field || 'relevance';
             const order = processor.inputs.order || 'desc';
 
             processedItems.sort((a, b) => {
-                const aVal = new Date(a.pubDate);
-                const bVal = new Date(b.pubDate);
+                let aVal, bVal;
+
+                if (field === 'time') {
+                    // Sort by timestamp
+                    aVal = new Date(a.pubDate);
+                    bVal = new Date(b.pubDate);
+                } else {
+                    // Sort by relevance score
+                    aVal = a.relevanceScore || 0;
+                    bVal = b.relevanceScore || 0;
+                }
+
                 return order === 'desc' ? bVal - aVal : aVal - bVal;
             });
         } else if (processor.type === 'limit') {
