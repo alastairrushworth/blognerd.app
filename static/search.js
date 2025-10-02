@@ -126,7 +126,8 @@ function displayResults(data) {
 }
 
 function updateURL(params) {
-    const newURL = window.location.pathname + '?' + params.toString();
+    // Always use root path for searches (not custom RSS)
+    const newURL = '/?' + params.toString();
     history.pushState(null, '', newURL);
 }
 

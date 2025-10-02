@@ -1,16 +1,31 @@
 // Page Initialization - Run after all modules are loaded
 
+// Track if RSS builder has been initialized
+let rssBuilderInitialized = false;
+
 // Initialize the page
 initializePage();
 
-// Initialize zoom functionality
-if (canvas) {
-    addZoomEventListeners();
-    updateZoom();
+// Function to initialize RSS builder (called when custom tab is clicked)
+function initializeRSSBuilder() {
+    if (rssBuilderInitialized) {
+        console.log('[RSS Builder] Already initialized, skipping');
+        return;
+    }
 
-    // Load default DAG if canvas is empty
-    if (rssNodes.size === 0) {
-        loadDefaultDAG();
+    console.log('[RSS Builder] Initializing RSS builder...');
+    rssBuilderInitialized = true;
+
+    // Initialize zoom functionality
+    if (canvas) {
+        addZoomEventListeners();
+        updateZoom();
+
+        // Load default DAG if canvas is empty
+        if (rssNodes.size === 0) {
+            console.log('[RSS Builder] Loading default DAG');
+            loadDefaultDAG();
+        }
     }
 }
 
@@ -21,21 +36,27 @@ function loadDefaultDAG() {
     const dsInput = createNode('search-source', 61, 122);
     dsInput.inputs.query = 'data science with R';
     dsInput.inputs.since = 'week';
+    dsInput.inputs.lang = 'en';
     const dsInputElement = document.getElementById(dsInput.id);
     const dsQueryInput = dsInputElement.querySelector('[data-field="query"]');
     const dsSinceSelect = dsInputElement.querySelector('[data-field="since"]');
+    const dsLangSelect = dsInputElement.querySelector('[data-field="lang"]');
     if (dsQueryInput) dsQueryInput.value = 'data science with R';
     if (dsSinceSelect) dsSinceSelect.value = 'week';
+    if (dsLangSelect) dsLangSelect.value = 'en';
 
     // Input 2: Statistics with R
     const statInput = createNode('search-source', 64, 349);
     statInput.inputs.query = 'statistics with R';
     statInput.inputs.since = 'week';
+    statInput.inputs.lang = 'en';
     const statInputElement = document.getElementById(statInput.id);
     const statQueryInput = statInputElement.querySelector('[data-field="query"]');
     const statSinceSelect = statInputElement.querySelector('[data-field="since"]');
+    const statLangSelect = statInputElement.querySelector('[data-field="lang"]');
     if (statQueryInput) statQueryInput.value = 'statistics with R';
     if (statSinceSelect) statSinceSelect.value = 'week';
+    if (statLangSelect) statLangSelect.value = 'en';
 
     // Limit 1: 10 items (for data science path)
     const dsLimit = createNode('limit', 345, 146);

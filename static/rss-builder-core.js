@@ -15,14 +15,14 @@ const customRSSBuilder = document.getElementById('custom-rss-builder');
 let canvasScale = 1;
 const minZoom = 0.25;
 const maxZoom = 3;
-const zoomStep = 0.25;
+const zoomStep = 0.05;
 
 // Node type configurations
 const nodeTypes = {
     'search-source': {
         icon: '🔍',
         title: 'Input',
-        inputs: ['Query', 'Since'],
+        inputs: ['Query', 'Since', 'Lang'],
         hasOutput: true,
         color: '#2196F3'
     },
@@ -69,6 +69,10 @@ function updateCustomRSSVisibility() {
     if (currentSearchType === 'custom') {
         if (customBuilder) {
             customBuilder.style.display = 'block';
+            // Initialize RSS builder on first use
+            if (typeof initializeRSSBuilder === 'function') {
+                initializeRSSBuilder();
+            }
             initializePalette();
         }
         if (resultsContainer) {
