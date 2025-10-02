@@ -7,31 +7,35 @@ function updateFilterVisibility(skipTimeDefault = false) {
     const timeGroup = document.getElementById('time-filter-group');
     const sortGroup = document.getElementById('sort-filter-group');
     const timeFilter = document.getElementById('time-filter');
+    const filtersBar = document.querySelector('.filters');
 
     // Note: updateCustomRSSVisibility() is called separately by the caller
     // to avoid multiple calls. Don't call it here.
 
     if (currentSearchType === 'custom') {
-        // Custom RSS: hide all filters and search controls
+        // Custom RSS: hide all filters and search controls, and hide the entire filters bar
         if (togglePostsGroup) togglePostsGroup.style.display = 'none';
         if (exportGroup) exportGroup.style.display = 'none';
         if (contentGroup) contentGroup.style.display = 'none';
         if (timeGroup) timeGroup.style.display = 'none';
         if (sortGroup) sortGroup.style.display = 'none';
+        if (filtersBar) filtersBar.style.display = 'none';
     } else if (currentSearchType === 'sites') {
-        // RSS Feeds: show toggle posts and export buttons, hide content, time and sort filters
+        // RSS Feeds: show toggle posts and export buttons, hide content, time and sort filters, show filters bar
         if (togglePostsGroup) togglePostsGroup.style.display = 'flex';
         if (exportGroup) exportGroup.style.display = 'flex';
         if (contentGroup) contentGroup.style.display = 'none';
         if (timeGroup) timeGroup.style.display = 'none';
         if (sortGroup) sortGroup.style.display = 'none';
+        if (filtersBar) filtersBar.style.display = 'flex';
     } else {
-        // Posts: hide toggle posts and export buttons, show content, time and sort filters
+        // Posts: hide toggle posts and export buttons, show content, time and sort filters, show filters bar
         if (togglePostsGroup) togglePostsGroup.style.display = 'none';
         if (exportGroup) exportGroup.style.display = 'none';
         if (contentGroup) contentGroup.style.display = 'flex';
         if (timeGroup) timeGroup.style.display = 'flex';
         if (sortGroup) sortGroup.style.display = 'flex';
+        if (filtersBar) filtersBar.style.display = 'flex';
     }
 }
 

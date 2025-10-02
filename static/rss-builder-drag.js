@@ -56,6 +56,51 @@ function initializePalette() {
             clearConnectionStatus();
         }
     });
+
+    // Add canvas panning functionality
+    addCanvasPanning();
+}
+
+// Canvas panning with click and drag
+function addCanvasPanning() {
+    const canvasContainer = document.querySelector('.builder-canvas-container');
+    if (!canvasContainer) return;
+
+    let isPanning = false;
+    let startX, startY, scrollLeft, scrollTop;
+
+    canvasContainer.addEventListener('mousedown', function(e) {
+        // Only pan when clicking on the canvas itself or the container, not on nodes
+        if (e.target === canvas || e.target === canvasContainer) {
+            isPanning = true;
+            canvasContainer.style.cursor = 'grabbing';
+            startX = e.pageX - canvasContainer.offsetLeft;
+            startY = e.pageY - canvasContainer.offsetTop;
+            scrollLeft = canvasContainer.scrollLeft;
+            scrollTop = canvasContainer.scrollTop;
+        }
+    });
+
+    canvasContainer.addEventListener('mouseleave', function() {
+        isPanning = false;
+        canvasContainer.style.cursor = 'default';
+    });
+
+    canvasContainer.addEventListener('mouseup', function() {
+        isPanning = false;
+        canvasContainer.style.cursor = 'default';
+    });
+
+    canvasContainer.addEventListener('mousemove', function(e) {
+        if (!isPanning) return;
+        e.preventDefault();
+        const x = e.pageX - canvasContainer.offsetLeft;
+        const y = e.pageY - canvasContainer.offsetTop;
+        const walkX = (x - startX) * 1;
+        const walkY = (y - startY) * 1;
+        canvasContainer.scrollLeft = scrollLeft - walkX;
+        canvasContainer.scrollTop = scrollTop - walkY;
+    });
 }
 
 // Make nodes draggable

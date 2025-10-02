@@ -93,6 +93,11 @@ async function processWorkflow(workflow) {
                 params.set('qry', query);
                 // Type is always 'pages' (posts), no need to set it explicitly
 
+                // Add time filter if specified
+                if (source.inputs.since) {
+                    params.set('time', source.inputs.since);
+                }
+
                 const response = await fetch(`/api/search?${params.toString()}`);
                 const data = await response.json();
 
@@ -124,10 +129,11 @@ async function processWorkflow(workflow) {
             const field = filter.inputs.field || 'title';
 
             if (pattern.trim()) {
-                const regex = new RegExp(pattern, 'i');
+                // Always use keyword matching (case-insensitive)
+                const lowerPattern = pattern.toLowerCase();
                 processedItems = processedItems.filter(item => {
-                    const text = item[field] || '';
-                    const matches = regex.test(text);
+                    const text = (item[field] || '').toLowerCase();
+                    const matches = text.includes(lowerPattern);
                     return mode === 'include' ? matches : !matches;
                 });
             }
