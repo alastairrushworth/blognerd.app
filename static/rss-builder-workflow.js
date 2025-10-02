@@ -411,10 +411,12 @@ function generateCustomRSS() {
         connections: rssConnections
     };
 
-    const encodedConfig = btoa(JSON.stringify(configData));
+    // Use encodeURIComponent for Unicode-safe encoding
+    const encodedConfig = encodeURIComponent(JSON.stringify(configData));
     const rssUrl = `/api/custom-rss?config=${encodedConfig}`;
 
-    alert(`Custom RSS feed URL:\n${window.location.origin}${rssUrl}\n\n(Copy this URL to subscribe to your custom feed)`);
+    // Open the RSS feed in a new tab
+    window.open(rssUrl, '_blank');
 }
 
 // Copy RSS URL to clipboard
@@ -430,7 +432,8 @@ function copyRSSUrl() {
         connections: rssConnections
     };
 
-    const encodedConfig = btoa(JSON.stringify(configData));
+    // Use encodeURIComponent for Unicode-safe encoding
+    const encodedConfig = encodeURIComponent(JSON.stringify(configData));
     const rssUrl = `${window.location.origin}/api/custom-rss?config=${encodedConfig}`;
 
     navigator.clipboard.writeText(rssUrl).then(() => {

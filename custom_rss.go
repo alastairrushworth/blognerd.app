@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -35,10 +36,10 @@ func (app *App) handleCustomRSSFeed(w http.ResponseWriter, r *http.Request) {
 	}
 	app.rssMutex.RUnlock()
 
-	// Decode the configuration
-	configJSON, err := base64DecodeString(configParam)
+	// Decode the configuration (URL-encoded instead of base64)
+	configJSON, err := url.QueryUnescape(configParam)
 	if err != nil {
-		log.Printf("Error decoding base64 config: %v, input: %s", err, configParam[:min(100, len(configParam))])
+		log.Printf("Error decoding URL config: %v, input: %s", err, configParam[:min(100, len(configParam))])
 		http.Error(w, "Invalid configuration encoding", http.StatusBadRequest)
 		return
 	}
@@ -111,7 +112,20 @@ func (app *App) processCustomRSSWorkflow(config *CustomRSSConfig) ([]SearchResul
 		return nil, fmt.Errorf("no source nodes found in workflow")
 	}
 
-	// Process each source node
+	// Find output node
+	var outputNode *CustomRSSNode
+	for i, node := range config.Nodes {
+		if node.Type == "output" {
+			outputNode = &config.Nodes[i]
+			break
+		}
+	}
+
+	if outputNode == nil {
+		return nil, fmt.Errorf("no output node found in workflow")
+	}
+
+	// Process each source independently through its path
 	for _, sourceNode := range sourceNodes {
 		var sourceResults []SearchResult
 		var err error
@@ -129,16 +143,22 @@ func (app *App) processCustomRSSWorkflow(config *CustomRSSConfig) ([]SearchResul
 			continue
 		}
 
-		allResults = append(allResults, sourceResults...)
+		// Process this source through its specific path
+		pathResults := app.processPath(sourceNode.ID, sourceResults, outputNode.ID, config)
+		allResults = append(allResults, pathResults...)
 	}
 
-	// Apply filters
-	filteredResults := app.applyCustomFilters(allResults, config)
+	// Deduplicate by URL
+	deduplicatedResults := app.deduplicateResults(allResults)
 
-	// Apply processors (sort, limit, etc.)
-	processedResults := app.applyCustomProcessors(filteredResults, config)
+	// Sort by time descending for RSS output
+	sort.Slice(deduplicatedResults, func(i, j int) bool {
+		timeI := parseDate(deduplicatedResults[i].Date)
+		timeJ := parseDate(deduplicatedResults[j].Date)
+		return timeI.After(timeJ)
+	})
 
-	return processedResults, nil
+	return deduplicatedResults, nil
 }
 
 
@@ -194,7 +214,7 @@ func (app *App) applyCustomFilters(results []SearchResult, config *CustomRSSConf
 		// Apply each filter node
 		for _, node := range config.Nodes {
 			if node.Type == "text-filter" {
-				include = app.applyTextFilter(&result, &node) && include
+				include = app.applyContentFilter(&result, &node) && include
 			}
 		}
 
@@ -206,8 +226,8 @@ func (app *App) applyCustomFilters(results []SearchResult, config *CustomRSSConf
 	return filteredResults
 }
 
-// applyTextFilter applies text filtering (keyword or regex) to a result
-func (app *App) applyTextFilter(result *SearchResult, node *CustomRSSNode) bool {
+// applyContentFilter applies text filtering (keyword or regex) to a result
+func (app *App) applyContentFilter(result *SearchResult, node *CustomRSSNode) bool {
 	// Get filter type (keyword or regex)
 	filterType := "keyword" // default
 	if typeInterface, exists := node.Inputs["type"]; exists {
@@ -372,6 +392,97 @@ func (app *App) applyLimitProcessor(results []SearchResult, node *CustomRSSNode)
 	}
 
 	return results[:count]
+}
+
+// processPath processes items through a specific path from source to output
+func (app *App) processPath(startNodeID string, items []SearchResult, outputNodeID string, config *CustomRSSConfig) []SearchResult {
+	currentItems := items
+	visited := make(map[string]bool)
+	queue := []struct {
+		nodeID string
+		items  []SearchResult
+	}{{startNodeID, currentItems}}
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		if visited[current.nodeID] {
+			continue
+		}
+		visited[current.nodeID] = true
+		currentItems = current.items
+
+		// If we reached the output, return the items
+		if current.nodeID == outputNodeID {
+			return currentItems
+		}
+
+		// Find next nodes in this path
+		nextConnections := make([]CustomRSSConnection, 0)
+		for _, conn := range config.Connections {
+			if conn.From == current.nodeID {
+				nextConnections = append(nextConnections, conn)
+			}
+		}
+
+		for _, conn := range nextConnections {
+			// Find the next node
+			var nextNode *CustomRSSNode
+			for i, node := range config.Nodes {
+				if node.ID == conn.To {
+					nextNode = &config.Nodes[i]
+					break
+				}
+			}
+
+			if nextNode == nil {
+				continue
+			}
+
+			// Apply transformations based on next node type
+			processedItems := currentItems
+
+			switch nextNode.Type {
+			case "content-filter":
+				filtered := make([]SearchResult, 0)
+				for _, item := range processedItems {
+					if app.applyContentFilter(&item, nextNode) {
+						filtered = append(filtered, item)
+					}
+				}
+				processedItems = filtered
+
+			case "sort":
+				processedItems = app.applySortProcessor(processedItems, nextNode)
+
+			case "limit":
+				processedItems = app.applyLimitProcessor(processedItems, nextNode)
+			}
+
+			queue = append(queue, struct {
+				nodeID string
+				items  []SearchResult
+			}{nextNode.ID, processedItems})
+		}
+	}
+
+	return currentItems
+}
+
+// deduplicateResults removes duplicate items by URL
+func (app *App) deduplicateResults(results []SearchResult) []SearchResult {
+	seen := make(map[string]bool)
+	deduplicated := make([]SearchResult, 0)
+
+	for _, result := range results {
+		if !seen[result.URL] {
+			seen[result.URL] = true
+			deduplicated = append(deduplicated, result)
+		}
+	}
+
+	return deduplicated
 }
 
 // generateCustomRSSFeed creates an RSS feed from custom workflow results
