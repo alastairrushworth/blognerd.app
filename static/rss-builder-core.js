@@ -53,10 +53,11 @@ const nodeTypes = {
     'output': {
         icon: '📄',
         title: 'RSS Output',
-        inputs: ['Title', 'Description'],
+        inputs: [],
         hasInput: true,
         hasOutput: false,
-        color: '#F44336'
+        color: '#F44336',
+        isCircle: true
     }
 };
 

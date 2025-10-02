@@ -55,13 +55,18 @@ function addConnectionListeners(node, nodeData) {
         point.addEventListener('click', function(e) {
             e.stopPropagation();
             e.preventDefault();
-            startConnection(nodeData.id, point.classList.contains('connection-output'));
+            const isOutput = point.classList.contains('connection-output') ||
+                           point.classList.contains('connection-output-top') ||
+                           point.classList.contains('connection-output-bottom');
+            startConnection(nodeData.id, isOutput);
         });
 
         // Add visual feedback on hover
         point.addEventListener('mouseenter', function(e) {
             if (connectionStart) {
-                const isOutput = point.classList.contains('connection-output');
+                const isOutput = point.classList.contains('connection-output') ||
+                               point.classList.contains('connection-output-top') ||
+                               point.classList.contains('connection-output-bottom');
                 const isInput = point.classList.contains('connection-input');
 
                 if ((connectionStart.isOutput && isInput) || (!connectionStart.isOutput && isOutput)) {
@@ -179,7 +184,10 @@ function updateConnectionPositionsOnly() {
         const toNode = document.getElementById(connection.to);
         if (!fromNode || !toNode) return;
 
-        const fromPoint = fromNode.querySelector('.connection-output');
+        // Get the connection point - try all output types
+        const fromPoint = fromNode.querySelector('.connection-output') ||
+                         fromNode.querySelector('.connection-output-top') ||
+                         fromNode.querySelector('.connection-output-bottom');
         const toPoint = toNode.querySelector('.connection-input');
         if (!fromPoint || !toPoint) return;
 
@@ -233,7 +241,10 @@ function updateConnections() {
 
         if (!fromNode || !toNode) return;
 
-        const fromPoint = fromNode.querySelector('.connection-output');
+        // Get the connection point - try all output types
+        const fromPoint = fromNode.querySelector('.connection-output') ||
+                         fromNode.querySelector('.connection-output-top') ||
+                         fromNode.querySelector('.connection-output-bottom');
         const toPoint = toNode.querySelector('.connection-input');
 
         if (!fromPoint || !toPoint) return;

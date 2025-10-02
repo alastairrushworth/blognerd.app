@@ -204,6 +204,33 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.canvas-node-circle {
+    min-width: unset;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.node-circle-icon {
+    width: 35px;
+    height: 35px;
+    pointer-events: none;
+}
+
+.canvas-node-circle .node-delete {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 18px;
+    height: 18px;
+    font-size: 14px;
+}
+
 .canvas-node * {
     -webkit-user-drag: none;
     user-select: none;
@@ -290,6 +317,18 @@
     top: 50%;
     right: -6px;
     transform: translateY(-50%);
+}
+
+.connection-output-top {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.connection-output-bottom {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .connection-line {
