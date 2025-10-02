@@ -1,16 +1,31 @@
 // Page Initialization - Run after all modules are loaded
 
+// Track if RSS builder has been initialized
+let rssBuilderInitialized = false;
+
 // Initialize the page
 initializePage();
 
-// Initialize zoom functionality
-if (canvas) {
-    addZoomEventListeners();
-    updateZoom();
+// Function to initialize RSS builder (called when custom tab is clicked)
+function initializeRSSBuilder() {
+    if (rssBuilderInitialized) {
+        console.log('[RSS Builder] Already initialized, skipping');
+        return;
+    }
 
-    // Load default DAG if canvas is empty
-    if (rssNodes.size === 0) {
-        loadDefaultDAG();
+    console.log('[RSS Builder] Initializing RSS builder...');
+    rssBuilderInitialized = true;
+
+    // Initialize zoom functionality
+    if (canvas) {
+        addZoomEventListeners();
+        updateZoom();
+
+        // Load default DAG if canvas is empty
+        if (rssNodes.size === 0) {
+            console.log('[RSS Builder] Loading default DAG');
+            loadDefaultDAG();
+        }
     }
 }
 

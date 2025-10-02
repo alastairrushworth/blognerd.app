@@ -212,12 +212,17 @@ function clearAllSettingsOnRefresh() {
 // Initialize page based on URL parameters
 function initializePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get('qry') || '';
+    let query = urlParams.get('qry') || '';
     // Check if we're on /custom-rss path, otherwise use URL param or default to 'pages'
     const type = window.location.pathname === '/custom-rss' ? 'custom' : (urlParams.get('type') || 'pages');
     const content = urlParams.get('content') || '';
     const time = urlParams.get('time') || '';
     const sort = urlParams.get('sort');
+
+    // If no URL query but search input has a value (from template), use that
+    if (!query && searchInput && searchInput.value) {
+        query = searchInput.value.trim();
+    }
 
     // Update current search type
     currentSearchType = type;
@@ -270,5 +275,9 @@ function initializePage() {
 
     // Initialize filter visibility
     updateFilterVisibility();
-    updateCustomRSSVisibility();
+
+    // Only initialize custom RSS if we're on the /custom-rss path
+    if (window.location.pathname === '/custom-rss') {
+        updateCustomRSSVisibility();
+    }
 }

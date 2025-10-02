@@ -165,3 +165,21 @@ func sortResultsByTime(results []SearchResult) {
 		return dateI.After(dateJ) // Most recent first
 	})
 }
+
+// deduplicateByTitle removes duplicate search results based on title
+func deduplicateByTitle(results []SearchResult) []SearchResult {
+	seen := make(map[string]bool)
+	deduped := make([]SearchResult, 0, len(results))
+
+	for _, result := range results {
+		// Use lowercase title for comparison to handle case variations
+		titleKey := strings.ToLower(strings.TrimSpace(result.Title))
+
+		if !seen[titleKey] {
+			seen[titleKey] = true
+			deduped = append(deduped, result)
+		}
+	}
+
+	return deduped
+}

@@ -63,43 +63,43 @@ function initializePalette() {
 
 // Canvas panning with click and drag
 function addCanvasPanning() {
-    const canvasContainer = document.querySelector('.builder-canvas-container');
-    if (!canvasContainer) return;
+    const canvasWrapper = document.querySelector('.canvas-wrapper');
+    if (!canvasWrapper) return;
 
     let isPanning = false;
     let startX, startY, scrollLeft, scrollTop;
 
-    canvasContainer.addEventListener('mousedown', function(e) {
-        // Only pan when clicking on the canvas itself or the container, not on nodes
-        if (e.target === canvas || e.target === canvasContainer) {
+    canvasWrapper.addEventListener('mousedown', function(e) {
+        // Only pan when clicking on the canvas itself or the wrapper, not on nodes
+        if (e.target === canvas || e.target === canvasWrapper) {
             isPanning = true;
-            canvasContainer.style.cursor = 'grabbing';
-            startX = e.pageX - canvasContainer.offsetLeft;
-            startY = e.pageY - canvasContainer.offsetTop;
-            scrollLeft = canvasContainer.scrollLeft;
-            scrollTop = canvasContainer.scrollTop;
+            canvasWrapper.style.cursor = 'grabbing';
+            startX = e.pageX - canvasWrapper.offsetLeft;
+            startY = e.pageY - canvasWrapper.offsetTop;
+            scrollLeft = canvasWrapper.scrollLeft;
+            scrollTop = canvasWrapper.scrollTop;
         }
     });
 
-    canvasContainer.addEventListener('mouseleave', function() {
+    canvasWrapper.addEventListener('mouseleave', function() {
         isPanning = false;
-        canvasContainer.style.cursor = 'default';
+        canvasWrapper.style.cursor = 'default';
     });
 
-    canvasContainer.addEventListener('mouseup', function() {
+    canvasWrapper.addEventListener('mouseup', function() {
         isPanning = false;
-        canvasContainer.style.cursor = 'default';
+        canvasWrapper.style.cursor = 'default';
     });
 
-    canvasContainer.addEventListener('mousemove', function(e) {
+    canvasWrapper.addEventListener('mousemove', function(e) {
         if (!isPanning) return;
         e.preventDefault();
-        const x = e.pageX - canvasContainer.offsetLeft;
-        const y = e.pageY - canvasContainer.offsetTop;
+        const x = e.pageX - canvasWrapper.offsetLeft;
+        const y = e.pageY - canvasWrapper.offsetTop;
         const walkX = (x - startX) * 1;
         const walkY = (y - startY) * 1;
-        canvasContainer.scrollLeft = scrollLeft - walkX;
-        canvasContainer.scrollTop = scrollTop - walkY;
+        canvasWrapper.scrollLeft = scrollLeft - walkX;
+        canvasWrapper.scrollTop = scrollTop - walkY;
     });
 }
 
