@@ -1,0 +1,14 @@
+<!-- Initial state when no search has been performed -->
+<div id="initial-state" class="initial-state" {{if .Query}}style="display: none;"{{end}}>
+    <div class="logo-large">
+        <img src="/static/rss.png" alt="RSS" class="logo-large-icon">
+        blognerd.app
+    </div>
+    <div class="search-container">
+        <input type="text" class="search-box" id="initial-search" placeholder="Search for posts and feeds..." autocomplete="off">
+        <div class="type-tabs-large">
+            <button class="type-tab-large active" data-type="pages">Posts</button>
+            <button class="type-tab-large" data-type="sites">RSS Feeds</button>
+        </div>
+    </div>
+</div>

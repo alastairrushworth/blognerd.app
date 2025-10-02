@@ -1,0 +1,62 @@
+<!-- Custom RSS Builder -->
+<div id="custom-rss-builder" class="custom-rss-builder" style="display: none;">
+    <div class="builder-content">
+        <div class="builder-sidebar">
+            <h3>Add Nodes</h3>
+            <div class="node-palette">
+                <div class="palette-item" draggable="true" data-node-type="search-source">
+                    <div class="palette-icon">🔍</div>
+                    <span>Input</span>
+                </div>
+                <div class="palette-item" draggable="true" data-node-type="content-filter">
+                    <div class="palette-icon">🔤</div>
+                    <span>Filter</span>
+                </div>
+                <div class="palette-item" draggable="true" data-node-type="sort">
+                    <div class="palette-icon">⬇️</div>
+                    <span>Sort</span>
+                </div>
+                <div class="palette-item" draggable="true" data-node-type="limit">
+                    <div class="palette-icon">#️⃣</div>
+                    <span>Limit</span>
+                </div>
+                <div class="palette-item" draggable="true" data-node-type="output">
+                    <div class="palette-icon"><img src="/static/rss.png" alt="RSS" style="width: 18px; height: 18px;"></div>
+                    <span>RSS Output</span>
+                </div>
+            </div>
+
+            <h3>Actions</h3>
+            <div class="node-palette">
+                <button class="palette-action-btn" onclick="loadRSSConfig()">Load Config</button>
+                <button class="palette-action-btn" onclick="saveRSSConfig()">Save Config</button>
+                <button class="palette-action-btn btn-primary-action" onclick="generateCustomRSS()">Generate RSS</button>
+            </div>
+        </div>
+
+        <div class="builder-canvas-container">
+            <div class="canvas-controls">
+                <button class="btn-small" onclick="zoomIn()">Zoom In (+)</button>
+                <button class="btn-small" onclick="zoomOut()">Zoom Out (-)</button>
+                <button class="btn-small" onclick="resetZoom()">Reset Zoom</button>
+                <span class="zoom-level" id="zoom-level">100%</span>
+            </div>
+            <div class="builder-canvas" id="rss-canvas">
+                <!-- Flowchart nodes will be added here dynamically -->
+            </div>
+        </div>
+
+        <div class="builder-preview">
+            <h3>Live Preview</h3>
+            <div class="preview-actions">
+                <button class="btn-small" onclick="refreshPreview()">Refresh</button>
+                <button class="btn-small" onclick="copyRSSUrl()">Copy RSS URL</button>
+            </div>
+            <div class="rss-preview" id="rss-preview">
+                <div class="preview-placeholder">
+                    Build your flowchart to see RSS preview
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

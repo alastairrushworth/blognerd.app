@@ -1,0 +1,27 @@
+<!-- Core JavaScript Modules - Load in dependency order -->
+
+<!-- 1. State Management (shared state across all modules) -->
+<script src="/static/state.js"></script>
+
+<!-- 2. Core Search Functionality -->
+<script src="/static/search.js"></script>
+
+<!-- 3. Filter and Export Functions -->
+<script src="/static/filters.js"></script>
+
+<!-- 4. Search Action Utilities -->
+<script src="/static/search-actions.js"></script>
+
+<!-- 5. RSS Builder Modules (can be loaded in parallel) -->
+<script src="/static/rss-builder-core.js"></script>
+<script src="/static/rss-builder-nodes.js"></script>
+<script src="/static/rss-builder-drag.js"></script>
+<script src="/static/rss-builder-connections.js"></script>
+<script src="/static/rss-builder-workflow.js"></script>
+<script src="/static/rss-builder-zoom.js"></script>
+
+<!-- 6. Event Handlers (depends on most other modules) -->
+<script src="/static/event-handlers.js"></script>
+
+<!-- 7. Page Initialization (must be last - runs on page load) -->
+<script src="/static/page-init.js"></script>

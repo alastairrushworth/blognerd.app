@@ -54,7 +54,7 @@ A semantic search engine for blog posts and RSS feeds, powered by vector embeddi
 
 4. **Run the application**
    ```bash
-   go run main.go pinecone.go voyage.go search.go
+   go run .
    ```
    
    Or build and run:
@@ -118,20 +118,48 @@ like:example.com
 
 ## Project Structure
 
+The codebase is organized into focused modules for maintainability:
+
 ```
 blognerd.app/
-├── main.go           # HTTP handlers and main application logic
+├── main.go           # Application bootstrap and routing (74 lines)
+├── types.go          # Data structures and type definitions
+├── handlers.go       # HTTP request handlers (home, search, API)
+├── search.go         # Search functionality and query processing
+├── rss.go            # RSS feed generation and caching
+├── export.go         # OPML and CSV export functionality
+├── custom_rss.go     # Custom RSS workflow processing
+├── utils.go          # Utility functions (parsing, formatting, etc.)
 ├── pinecone.go       # Pinecone vector database client
 ├── voyage.go         # Voyage AI embeddings client
-├── search.go         # Search query parsing and filtering
 ├── templates/        # HTML templates
-│   └── index.html
+│   ├── index.html
+│   ├── head.html
+│   ├── styles.html
+│   ├── scripts.html
+│   ├── rss-builder.html
+│   ├── search-state.html
+│   ├── initial-state.html
+│   └── footer.html
 ├── static/           # Static assets (CSS, images)
 ├── .env.example      # Environment variables template
 ├── Dockerfile        # Docker configuration
 ├── go.mod           # Go module definition
 └── README.md        # This file
 ```
+
+### Module Responsibilities
+
+- **`main.go`**: Minimal bootstrap code - initializes clients, templates, routes
+- **`types.go`**: All struct definitions (SearchResult, App, CustomRSSConfig, etc.)
+- **`handlers.go`**: HTTP handlers for web pages and API endpoints
+- **`search.go`**: Core search logic, Pinecone queries, result processing
+- **`rss.go`**: RSS feed generation with caching and cleanup
+- **`export.go`**: OPML and CSV export for RSS feeds
+- **`custom_rss.go`**: Advanced RSS workflow builder functionality
+- **`utils.go`**: Shared utilities for date parsing, URL cleaning, XML escaping
+- **`pinecone.go`**: Vector database client and operations
+- **`voyage.go`**: Embedding generation client
 
 ## Development
 
