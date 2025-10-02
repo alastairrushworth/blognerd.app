@@ -28,7 +28,7 @@ function createNode(nodeType, x, y) {
                     if (nodeType === 'sort') {
                         options = '<option value="relevance">Relevance</option><option value="time">Time</option>';
                     } else {
-                        options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                        options = '<option value="title">Title</option><option value="description">Description</option>';
                     }
                 } else if (input === 'Order') {
                     options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
@@ -54,7 +54,7 @@ function createNode(nodeType, x, y) {
         node.innerHTML = `
             <div class="node-header">
                 <div class="node-title">
-                    <span>${config.icon}</span>
+                    <span class="node-icon">${config.icon}</span>
                     <span>${config.title}</span>
                 </div>
                 <button class="node-delete" onclick="deleteNode('${nodeId}')">×</button>
@@ -176,7 +176,7 @@ function createNodeFromData(nodeData) {
                     if (nodeData.type === 'sort') {
                         options = '<option value="relevance">Relevance</option><option value="time">Time</option>';
                     } else {
-                        options = '<option value="title">Title</option><option value="description">Description</option><option value="content">Content</option>';
+                        options = '<option value="title">Title</option><option value="description">Description</option>';
                     }
                 } else if (input === 'Order') {
                     options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
@@ -202,7 +202,7 @@ function createNodeFromData(nodeData) {
         node.innerHTML = `
             <div class="node-header">
                 <div class="node-title">
-                    <span>${config.icon}</span>
+                    <span class="node-icon">${config.icon}</span>
                     <span>${config.title}</span>
                 </div>
                 <button class="node-delete" onclick="deleteNode('${nodeData.id}')">×</button>

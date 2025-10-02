@@ -110,10 +110,10 @@ async function processWorkflow(workflow) {
                 // Convert search results to RSS item format
                 items = data.results ? data.results.slice(0, 50).map((result, index) => ({
                     title: result.title,
-                    description: result.description || result.title,
+                    description: result.description || result.subtitle || result.title,
                     link: result.url,
                     pubDate: result.date || new Date().toISOString(),
-                    source: `Search: ${query}`,
+                    source: `Query: ${query}`,
                     relevanceScore: data.results.length - index  // Higher score = more relevant
                 })) : [];
             }
@@ -309,16 +309,17 @@ function displayRSSPreview(items) {
 
     const itemsHTML = items.map(item => {
         // Display all sources if item appeared in multiple searches
-        const sourceText = item.sources
-            ? item.sources.join(' + ')
-            : item.source;
+        // Extract just the query part after "Query: " and join with commas
+        const queries = item.sources
+            ? item.sources.map(s => s.replace('Query: ', '')).join(', ')
+            : item.source.replace('Query: ', '');
 
         return `
             <div class="rss-item">
-                <div class="rss-item-title">${item.title}</div>
+                <a href="${item.link}" target="_blank" class="rss-item-title">${item.title}</a>
                 <div class="rss-item-description">${item.description}</div>
                 <div class="rss-item-meta">
-                    ${new Date(item.pubDate).toLocaleDateString()} • ${sourceText}
+                    ${new Date(item.pubDate).toLocaleDateString()} • Query: ${queries}
                 </div>
             </div>
         `;
