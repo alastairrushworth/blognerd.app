@@ -174,10 +174,10 @@ function clearAllSettingsOnRefresh() {
 // Initialize page based on URL parameters
 function initializePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get('qry') || '{{.Query}}';
-    const type = urlParams.get('type') || '{{.SearchType}}' || 'pages';
-    const content = urlParams.get('content') || '{{.SearchContent}}';
-    const time = urlParams.get('time') || '{{.SearchTime}}';
+    const query = urlParams.get('qry') || '';
+    const type = urlParams.get('type') || 'pages';
+    const content = urlParams.get('content') || '';
+    const time = urlParams.get('time') || '';
     const sort = urlParams.get('sort');
 
     // Update current search type

@@ -22,7 +22,7 @@ const nodeTypes = {
     'search-source': {
         icon: '🔍',
         title: 'Input',
-        inputs: ['Query', 'Since'],
+        inputs: ['Query', 'Since', 'Lang'],
         hasOutput: true,
         color: '#2196F3'
     },
