@@ -15,7 +15,7 @@ const customRSSBuilder = document.getElementById('custom-rss-builder');
 let canvasScale = 1;
 const minZoom = 0.25;
 const maxZoom = 3;
-const zoomStep = 0.25;
+const zoomStep = 0.05;
 
 // Node type configurations
 const nodeTypes = {
