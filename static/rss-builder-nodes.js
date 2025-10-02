@@ -16,7 +16,7 @@ function createNode(nodeType, x, y) {
     let inputsHTML = '';
     if (config.inputs) {
         config.inputs.forEach(input => {
-            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order') {
+            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order' || input === 'Since') {
                 let options = '';
                 if (input === 'Type') {
                     // Type is only for content-filter now
@@ -32,6 +32,8 @@ function createNode(nodeType, x, y) {
                     }
                 } else if (input === 'Order') {
                     options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
+                } else if (input === 'Since') {
+                    options = '<option value="">Any time</option><option value="week">Past week</option><option value="month">Past month</option><option value="year">Past year</option>';
                 }
                 inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
             } else {
@@ -150,7 +152,7 @@ function createNodeFromData(nodeData) {
     let inputsHTML = '';
     if (config.inputs) {
         config.inputs.forEach(input => {
-            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order') {
+            if (input === 'Type' || input === 'Mode' || input === 'Field' || input === 'Order' || input === 'Since') {
                 let options = '';
                 if (input === 'Type') {
                     // Type is only for content-filter now
@@ -166,6 +168,8 @@ function createNodeFromData(nodeData) {
                     }
                 } else if (input === 'Order') {
                     options = '<option value="desc">Descending</option><option value="asc">Ascending</option>';
+                } else if (input === 'Since') {
+                    options = '<option value="">Any time</option><option value="week">Past week</option><option value="month">Past month</option><option value="year">Past year</option>';
                 }
                 inputsHTML += `<div>${input}: <select class="node-select" data-field="${input.toLowerCase()}">${options}</select></div>`;
             } else {

@@ -22,14 +22,14 @@ const nodeTypes = {
     'search-source': {
         icon: '🔍',
         title: 'Input',
-        inputs: ['Query'],
+        inputs: ['Query', 'Since'],
         hasOutput: true,
         color: '#2196F3'
     },
     'content-filter': {
         icon: '🔤',
         title: 'Filter',
-        inputs: ['Pattern', 'Type', 'Field', 'Mode'],
+        inputs: ['Pattern', 'Field', 'Mode'],
         hasInput: true,
         hasOutput: true,
         color: '#FF9800'
