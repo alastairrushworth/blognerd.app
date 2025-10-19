@@ -16,6 +16,15 @@ if (initialSearch) {
 
 // Handle search state search
 if (searchInput) {
+    // Clear default query on focus
+    searchInput.addEventListener('focus', function() {
+        if (this.dataset.defaultQuery === 'true') {
+            this.value = '';
+            this.classList.remove('default-query');
+            this.dataset.defaultQuery = 'false';
+        }
+    });
+
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         if (this.value.trim() === '') return;

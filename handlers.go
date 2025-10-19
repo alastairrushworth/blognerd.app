@@ -11,7 +11,7 @@ func (app *App) handleHome(w http.ResponseWriter, r *http.Request) {
 
 	// If no query provided, use default example search
 	if query == "" {
-		query = "embeddings deep dive"
+		query = "surf blogs like it's 2002"
 	}
 
 	data := map[string]interface{}{

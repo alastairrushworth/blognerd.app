@@ -8,15 +8,15 @@
     }
 
     .logo {
-        font-size: 18px;
+        font-size: 20px;
         min-width: fit-content;
         gap: 6px;
         flex-shrink: 0;
     }
 
     .logo-icon {
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
         align-self: center;
     }
 
@@ -25,17 +25,20 @@
         height: 60px;
     }
 
-    .search-box {
-        font-size: 16px;
-        width: auto;
+    .search-container {
         flex: 1;
         min-width: 0;
+    }
+
+    .search-box {
+        font-size: 16px;
+        width: 100%;
         padding: 0 12px;
     }
 
     .filters {
         padding: 8px 12px;
-        gap: 6px;
+        gap: 8px;
         flex-wrap: wrap;
         overflow-x: auto;
     }
@@ -47,16 +50,20 @@
         white-space: nowrap;
     }
 
+    .filter-label {
+        font-size: 14px;
+    }
+
     .filter-select {
-        min-width: 70px;
-        font-size: 12px;
+        min-width: 80px;
+        font-size: 14px;
         flex-shrink: 0;
-        padding: 4px 6px;
+        padding: 5px 8px;
     }
 
     .type-tab {
-        font-size: 13px;
-        padding: 8px 10px;
+        font-size: 15px;
+        padding: 10px 14px;
         white-space: nowrap;
     }
 
@@ -66,8 +73,8 @@
     }
 
     .export-btn {
-        padding: 6px 10px;
-        font-size: 12px;
+        padding: 7px 12px;
+        font-size: 14px;
         white-space: nowrap;
     }
 
@@ -82,13 +89,13 @@
 
     .rss-feed-link {
         margin-left: 8px;
-        font-size: 12px;
-        padding: 3px 6px;
+        font-size: 13px;
+        padding: 4px 8px;
     }
 
     .rss-icon {
-        width: 12px;
-        height: 12px;
+        width: 13px;
+        height: 13px;
     }
 }
 
@@ -100,13 +107,13 @@
     }
 
     .logo {
-        font-size: 16px;
-        gap: 4px;
+        font-size: 18px;
+        gap: 5px;
     }
 
     .logo-icon {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
     }
 
     .search-box {
@@ -116,22 +123,22 @@
 
     .filters {
         padding: 6px 8px;
-        gap: 4px;
+        gap: 6px;
     }
 
     .filter-select {
-        min-width: 60px;
-        font-size: 11px;
-        padding: 3px 5px;
+        min-width: 70px;
+        font-size: 13px;
+        padding: 4px 6px;
     }
 
     .filter-label {
-        font-size: 12px;
+        font-size: 13px;
     }
 
     .type-tab {
-        font-size: 12px;
-        padding: 6px 8px;
+        font-size: 14px;
+        padding: 8px 12px;
     }
 
     .search-types {
@@ -163,14 +170,14 @@
     }
 
     .rss-feed-link {
-        font-size: 11px;
-        padding: 2px 5px;
+        font-size: 12px;
+        padding: 3px 6px;
         margin-left: 6px;
     }
 
     .rss-icon {
-        width: 10px;
-        height: 10px;
+        width: 11px;
+        height: 11px;
     }
 }
 
