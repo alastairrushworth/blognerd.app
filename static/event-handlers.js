@@ -47,43 +47,6 @@ document.addEventListener('click', function(e) {
     if (e.target.classList.contains('type-tab') || e.target.classList.contains('type-tab-large')) {
         const type = e.target.dataset.type;
 
-        // If custom RSS tab, navigate to /custom-rss
-        if (type === 'custom') {
-            // Store current search state in sessionStorage before navigating
-            const query = (searchInput?.value || initialSearch?.value || '').trim();
-            const contentFilter = document.getElementById('content-filter')?.value || '';
-            const timeFilter = document.getElementById('time-filter')?.value || '';
-            const currentType = currentSearchType;
-
-            if (query) {
-                sessionStorage.setItem('lastSearchState', JSON.stringify({
-                    query: query,
-                    type: currentType,
-                    content: contentFilter,
-                    time: timeFilter
-                }));
-            }
-
-            window.location.href = '/custom-rss';
-            return;
-        }
-
-        // If we're on /custom-rss and clicking non-custom tab, restore last search or go to fresh search
-        if (window.location.pathname === '/custom-rss') {
-            const lastSearch = sessionStorage.getItem('lastSearchState');
-
-            if (lastSearch) {
-                const state = JSON.parse(lastSearch);
-                // Clear the stored state
-                sessionStorage.removeItem('lastSearchState');
-                // Navigate with the stored state, but update type to clicked tab
-                window.location.href = `/?qry=${encodeURIComponent(state.query)}&type=${type}&content=${state.content}&time=${state.time}`;
-            } else {
-                window.location.href = `/?type=${type}`;
-            }
-            return;
-        }
-
         currentSearchType = type;
 
         // Update active state
@@ -95,7 +58,6 @@ document.addEventListener('click', function(e) {
 
         // Update filter visibility based on search type
         updateFilterVisibility();
-        updateCustomRSSVisibility();
 
         // If we have a search query, perform search
         const query = (searchInput?.value || initialSearch?.value || '').trim();
@@ -222,8 +184,7 @@ function clearAllSettingsOnRefresh() {
 function initializePage() {
     const urlParams = new URLSearchParams(window.location.search);
     let query = urlParams.get('qry') || '';
-    // Check if we're on /custom-rss path, otherwise use URL param or default to 'pages'
-    const type = window.location.pathname === '/custom-rss' ? 'custom' : (urlParams.get('type') || 'pages');
+    const type = urlParams.get('type') || 'pages';
     const content = urlParams.get('content') || '';
     const time = urlParams.get('time') || '';
     const sort = urlParams.get('sort');
@@ -284,9 +245,4 @@ function initializePage() {
 
     // Initialize filter visibility
     updateFilterVisibility();
-
-    // Only initialize custom RSS if we're on the /custom-rss path
-    if (window.location.pathname === '/custom-rss') {
-        updateCustomRSSVisibility();
-    }
 }

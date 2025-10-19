@@ -32,25 +32,6 @@ func (app *App) handleHome(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// handleCustomRSSPage renders the custom RSS builder page
-func (app *App) handleCustomRSSPage(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{
-		"Query":        "",
-		"SearchType":   "custom",
-		"SearchContent": "",
-		"SearchTime":   "",
-		"Results":      nil,
-		"TimeTaken":    0.0,
-		"TotalResults": 0,
-		"ShowSearch":   true, // Always show search state
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	err := app.templates.ExecuteTemplate(w, "index.html", data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
 
 // handleSearch handles the main search functionality with HTML response
 func (app *App) handleSearch(w http.ResponseWriter, r *http.Request) {
