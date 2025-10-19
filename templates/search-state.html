@@ -7,7 +7,7 @@
                 blognerd.app
             </a>
             <div class="search-container">
-                <input type="text" class="search-box" id="search-input" value="{{.Query}}" placeholder="Search for posts and feeds..." autocomplete="off">
+                <input type="text" class="search-box{{if eq .Query "surf blogs like it's 2002"}} default-query{{end}}" id="search-input" value="{{.Query}}" placeholder="Search for posts and feeds..." autocomplete="off" data-default-query="{{if eq .Query "surf blogs like it's 2002"}}true{{else}}false{{end}}">
             </div>
         </div>
         
@@ -20,16 +20,15 @@
     
     <div class="filters">
         <div class="filter-group" id="content-filter-group">
-            <span class="filter-label">Content:</span>
+            <span class="filter-label">Options</span>
             <select class="filter-select" id="content-filter">
-                <option value="" {{if eq .SearchContent ""}}selected{{end}}>All</option>
+                <option value="" {{if eq .SearchContent ""}}selected{{end}}>All content</option>
                 <option value="blogs" {{if eq .SearchContent "blogs"}}selected{{end}}>Blogs</option>
                 <option value="academic" {{if eq .SearchContent "academic"}}selected{{end}}>Academic</option>
                 <option value="news" {{if eq .SearchContent "news"}}selected{{end}}>News</option>
             </select>
         </div>
         <div class="filter-group" id="time-filter-group">
-            <span class="filter-label">Since:</span>
             <select class="filter-select" id="time-filter">
                 <option value="" {{if eq .SearchTime ""}}selected{{end}}>Any time</option>
                 <option value="week" {{if eq .SearchTime "week"}}selected{{end}}>Past week</option>
