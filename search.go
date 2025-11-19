@@ -284,7 +284,7 @@ func (app *App) searchContent(query string, maxResults int) ([]SearchResult, err
 	namespace := "blaze-content-v3" // Default to content namespace
 	log.Printf("DEBUG: Checking for 'type:feeds' in query: '%s'", query)
 	if strings.Contains(query, "type:feeds") {
-		namespace = "blaze-feeds-v2"
+		namespace = "blaze-feeds-v3"
 		log.Printf("DEBUG: Using feeds namespace: %s", namespace)
 	} else {
 		log.Printf("DEBUG: Using content namespace: %s", namespace)
