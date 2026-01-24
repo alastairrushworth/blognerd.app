@@ -1,4 +1,4 @@
-package main
+package pinecone
 
 import (
 	"bytes"
@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-type PineconeClient struct {
+// Client handles Pinecone vector database operations
+type Client struct {
 	apiKey string
 	host   string
 	index  string
@@ -44,8 +45,9 @@ type PineconeFetchResponse struct {
 	} `json:"vectors"`
 }
 
-func NewPineconeClient(apiKey, host, index string) *PineconeClient {
-	return &PineconeClient{
+// NewClient creates a new Pinecone client
+func NewClient(apiKey, host, index string) *Client {
+	return &Client{
 		apiKey: apiKey,
 		host:   host,
 		index:  index,
@@ -55,7 +57,7 @@ func NewPineconeClient(apiKey, host, index string) *PineconeClient {
 	}
 }
 
-func (pc *PineconeClient) Query(namespace string, embedding []float64, filters map[string]interface{}, topK int) ([]PineconeMatch, error) {
+func (pc *Client) Query(namespace string, embedding []float64, filters map[string]interface{}, topK int) ([]PineconeMatch, error) {
 	if len(embedding) == 0 {
 		return []PineconeMatch{}, nil
 	}
@@ -110,12 +112,12 @@ func (pc *PineconeClient) Query(namespace string, embedding []float64, filters m
 	return response.Matches, nil
 }
 
-func (pc *PineconeClient) GetEmbedding(id string) ([]float64, error) {
+func (pc *Client) GetEmbedding(id string) ([]float64, error) {
 	// Fetch vector from Pinecone by ID using default namespace
 	return pc.GetEmbeddingFromNamespace(id, pc.index)
 }
 
-func (pc *PineconeClient) GetEmbeddingFromNamespace(id string, namespace string) ([]float64, error) {
+func (pc *Client) GetEmbeddingFromNamespace(id string, namespace string) ([]float64, error) {
 	// Fetch vector from Pinecone by ID from specific namespace
 	url := fmt.Sprintf("%s/vectors/fetch?ids=%s&namespace=%s", pc.host, id, namespace)
 	

@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"blognerd/internal/utils"
 )
 
 // handleHome renders the homepage with search form
@@ -16,7 +18,7 @@ func (app *App) handleHome(w http.ResponseWriter, r *http.Request) {
 
 	data := map[string]interface{}{
 		"Query":        query,
-		"SearchType":   getStringDefault(r.URL.Query().Get("type"), "pages"),
+		"SearchType":   utils.GetStringDefault(r.URL.Query().Get("type"), "pages"),
 		"SearchContent": r.URL.Query().Get("content"),
 		"SearchTime":   r.URL.Query().Get("time"),
 		"Results":      nil,
@@ -45,7 +47,7 @@ func (app *App) handleSearch(w http.ResponseWriter, r *http.Request) {
 
 	data := map[string]interface{}{
 		"Query":        r.URL.Query().Get("qry"),
-		"SearchType":   getStringDefault(r.URL.Query().Get("type"), "pages"),
+		"SearchType":   utils.GetStringDefault(r.URL.Query().Get("type"), "pages"),
 		"SearchContent": r.URL.Query().Get("content"),
 		"SearchTime":   r.URL.Query().Get("time"),
 		"Results":      results,

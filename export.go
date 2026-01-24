@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"blognerd/internal/utils"
 )
 
 // handleOPMLExport exports search results as OPML
@@ -88,18 +90,18 @@ func generateOPML(feedResults []SearchResult, query string) string {
 <windowRight>842</windowRight>
 </head>
 <body>
-<outline text="BlogNerd Search Results: ` + escapeXML(query) + `" title="BlogNerd Search Results">
+<outline text="BlogNerd Search Results: ` + utils.EscapeXML(query) + `" title="BlogNerd Search Results">
 `
 
 	for _, feed := range feedResults {
-		title := escapeXML(feed.Title)
+		title := utils.EscapeXML(feed.Title)
 		if title == "" {
-			title = escapeXML(feed.BaseDomain)
+			title = utils.EscapeXML(feed.BaseDomain)
 		}
 		
-		subtitle := escapeXML(feed.Subtitle)
-		rssURL := escapeXML(feed.RSSURL)
-		htmlURL := escapeXML(feed.URL)
+		subtitle := utils.EscapeXML(feed.Subtitle)
+		rssURL := utils.EscapeXML(feed.RSSURL)
+		htmlURL := utils.EscapeXML(feed.URL)
 		
 		opml += `<outline type="rss" text="` + title + `" title="` + title + `" xmlUrl="` + rssURL + `" htmlUrl="` + htmlURL + `"`
 		if subtitle != "" {

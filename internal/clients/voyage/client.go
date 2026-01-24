@@ -1,4 +1,4 @@
-package main
+package voyage
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type VoyageClient struct {
+type Client struct {
 	apiKey string
 	client *http.Client
 }
@@ -31,8 +31,8 @@ type VoyageEmbeddingResponse struct {
 	} `json:"usage"`
 }
 
-func NewVoyageClient(apiKey string) *VoyageClient {
-	return &VoyageClient{
+func NewClient(apiKey string) *Client {
+	return &Client{
 		apiKey: apiKey,
 		client: &http.Client{
 			Timeout: 30 * time.Second,
@@ -40,11 +40,11 @@ func NewVoyageClient(apiKey string) *VoyageClient {
 	}
 }
 
-func (vc *VoyageClient) GetEmbedding(text string) ([]float64, error) {
+func (vc *Client) GetEmbedding(text string) ([]float64, error) {
 	return vc.GetEmbeddingWithType(text, "query")
 }
 
-func (vc *VoyageClient) GetEmbeddingWithType(text string, inputType string) ([]float64, error) {
+func (vc *Client) GetEmbeddingWithType(text string, inputType string) ([]float64, error) {
 	if text == "" {
 		return nil, fmt.Errorf("text cannot be empty")
 	}
@@ -95,7 +95,7 @@ func (vc *VoyageClient) GetEmbeddingWithType(text string, inputType string) ([]f
 	return response.Data[0].Embedding, nil
 }
 
-func (vc *VoyageClient) GetEmbeddings(texts []string, inputType string) ([][]float64, error) {
+func (vc *Client) GetEmbeddings(texts []string, inputType string) ([][]float64, error) {
 	if len(texts) == 0 {
 		return nil, fmt.Errorf("texts cannot be empty")
 	}

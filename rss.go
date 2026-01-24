@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"blognerd/internal/utils"
 )
 
 // handleRSSFeed processes RSS feed requests
@@ -60,7 +62,7 @@ func (app *App) generateRSSFeed(results []SearchResult, query string, r *http.Re
 	}
 
 	// Get search parameters for feed metadata
-	searchType := getStringDefault(r.URL.Query().Get("type"), "pages")
+	searchType := utils.GetStringDefault(r.URL.Query().Get("type"), "pages")
 	content := r.URL.Query().Get("content")
 	timeParam := r.URL.Query().Get("time")
 
@@ -84,10 +86,10 @@ func (app *App) generateRSSFeed(results []SearchResult, query string, r *http.Re
 	rss := `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-<title>` + escapeXML(feedTitle) + `</title>
-<description>` + escapeXML(feedDescription) + `</description>
-<link>https://blognerd.app/?qry=` + escapeXML(query) + `</link>
-<atom:link href="https://blognerd.app/rss?` + escapeXML(r.URL.RawQuery) + `" rel="self" type="application/rss+xml" />
+<title>` + utils.EscapeXML(feedTitle) + `</title>
+<description>` + utils.EscapeXML(feedDescription) + `</description>
+<link>https://blognerd.app/?qry=` + utils.EscapeXML(query) + `</link>
+<atom:link href="https://blognerd.app/rss?` + utils.EscapeXML(r.URL.RawQuery) + `" rel="self" type="application/rss+xml" />
 <lastBuildDate>` + time.Now().Format(time.RFC1123) + `</lastBuildDate>
 <generator>BlogNerd</generator>
 <ttl>600</ttl>
@@ -112,7 +114,7 @@ func (app *App) generateRSSFeed(results []SearchResult, query string, r *http.Re
 		// Parse and format publication date
 		var pubDate string
 		if result.Date != "" {
-			if parsedDate := parseDate(result.Date); !parsedDate.IsZero() {
+			if parsedDate := utils.ParseDate(result.Date); !parsedDate.IsZero() {
 				pubDate = parsedDate.Format(time.RFC1123)
 			} else {
 				pubDate = time.Now().Format(time.RFC1123)
@@ -122,12 +124,12 @@ func (app *App) generateRSSFeed(results []SearchResult, query string, r *http.Re
 		}
 
 		rss += `<item>
-<title>` + escapeXML(itemTitle) + `</title>
-<description>` + escapeXML(itemDescription) + `</description>
-<link>` + escapeXML(result.URL) + `</link>
-<guid isPermaLink="true">` + escapeXML(result.URL) + `</guid>
+<title>` + utils.EscapeXML(itemTitle) + `</title>
+<description>` + utils.EscapeXML(itemDescription) + `</description>
+<link>` + utils.EscapeXML(result.URL) + `</link>
+<guid isPermaLink="true">` + utils.EscapeXML(result.URL) + `</guid>
 <pubDate>` + pubDate + `</pubDate>
-<source>` + escapeXML(result.BaseDomain) + `</source>
+<source>` + utils.EscapeXML(result.BaseDomain) + `</source>
 </item>
 `
 	}
