@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"blognerd/internal/clients/pinecone"
+	"blognerd/internal/utils"
 )
 
 // SearchQuery contains parsed search parameters
@@ -182,11 +185,11 @@ func (app *App) performSearch(query string, params map[string][]string) ([]Searc
 
 	// Build search query with filters
 	searchQuery := query
-	searchType := getStringDefault(getParam(params, "type"), "pages")
-	content := getParam(params, "content")
-	timeFilter := getParam(params, "time")
-	includePosts := getParam(params, "include_posts") == "true"
-	sortBy := getParam(params, "sort")
+	searchType := utils.GetStringDefault(utils.GetParam(params, "type"), "pages")
+	content := utils.GetParam(params, "content")
+	timeFilter := utils.GetParam(params, "time")
+	includePosts := utils.GetParam(params, "include_posts") == "true"
+	sortBy := utils.GetParam(params, "sort")
 
 	if searchType == "sites" {
 		searchQuery += " type:feeds"
@@ -313,10 +316,10 @@ func (app *App) searchContent(query string, maxResults int) ([]SearchResult, err
 			if i < 3 { // Log first 3 results
 				log.Printf("DEBUG SITE RESULT %d: ID=%s, Score=%.3f, Metadata keys=%v", 
 					i, result.ID, result.Score, getMetadataKeys(result.Metadata))
-				if baseURL := getMetadataString(result.Metadata, "baseurl"); baseURL != "" {
+				if baseURL := utils.GetMetadataString(result.Metadata, "baseurl"); baseURL != "" {
 					log.Printf("DEBUG SITE RESULT %d: baseurl=%s", i, baseURL)
 				}
-				if baseURL := getMetadataString(result.Metadata, "base_url"); baseURL != "" {
+				if baseURL := utils.GetMetadataString(result.Metadata, "base_url"); baseURL != "" {
 					log.Printf("DEBUG SITE RESULT %d: base_url=%s", i, baseURL)
 				}
 			}
@@ -328,38 +331,38 @@ func (app *App) searchContent(query string, maxResults int) ([]SearchResult, err
 	isFeedSearch := strings.Contains(query, "type:feeds")
 
 	for i, result := range pineconeResults {
-		title := getMetadataString(result.Metadata, "title")
-		subtitle := getMetadataString(result.Metadata, "subtitle")
+		title := utils.GetMetadataString(result.Metadata, "title")
+		subtitle := utils.GetMetadataString(result.Metadata, "subtitle")
 		
 		// For feed searches, construct different title/subtitle and URL mapping
 		if isFeedSearch {
-			ownerName := getMetadataString(result.Metadata, "owner_name")
+			ownerName := utils.GetMetadataString(result.Metadata, "owner_name")
 			if ownerName != "" {
 				title = ownerName
 			}
-			subtitle = getMetadataString(result.Metadata, "short_summary")
+			subtitle = utils.GetMetadataString(result.Metadata, "short_summary")
 			
-			baseURL := getMetadataString(result.Metadata, "baseurl")
+			baseURL := utils.GetMetadataString(result.Metadata, "baseurl")
 			results[i] = SearchResult{
 				URL:            baseURL,  // Use baseurl for feeds
 				Title:          title,
 				Subtitle:       subtitle,
 				Date:           "", // Feeds don't have dates
 				Score:          result.Score,
-				BaseDomain:     cleanURL(baseURL),
+				BaseDomain:     utils.CleanURL(baseURL),
 				IsFeed:         isFeedSearch,
 				RSSURL:         result.ID, // RSS feed URL is stored in Pinecone ID
 				OriginalDomain: baseURL, // Keep full URL format to match Pinecone schema
 			}
 		} else {
-			baseURL := getMetadataString(result.Metadata, "base_url")
+			baseURL := utils.GetMetadataString(result.Metadata, "base_url")
 			results[i] = SearchResult{
 				URL:            result.ID,
 				Title:          title,
 				Subtitle:       subtitle,
-				Date:           formatDate(getMetadataString(result.Metadata, "dt_published")),
+				Date:           utils.FormatDate(utils.GetMetadataString(result.Metadata, "dt_published")),
 				Score:          result.Score,
-				BaseDomain:     cleanURL(baseURL),
+				BaseDomain:     utils.CleanURL(baseURL),
 				IsFeed:         isFeedSearch,
 				RSSURL:         "",
 				OriginalDomain: baseURL,
@@ -451,9 +454,9 @@ func (app *App) getLatestPostsForFeeds(feedResults []SearchResult) map[string]Se
 		latestResult := results[0]
 		latestPost := SearchResult{
 			URL:      latestResult.ID,
-			Title:    getMetadataString(latestResult.Metadata, "title"),
-			Subtitle: getMetadataString(latestResult.Metadata, "subtitle"),
-			Date:     formatDate(getMetadataString(latestResult.Metadata, "dt_published")),
+			Title:    utils.GetMetadataString(latestResult.Metadata, "title"),
+			Subtitle: utils.GetMetadataString(latestResult.Metadata, "subtitle"),
+			Date:     utils.FormatDate(utils.GetMetadataString(latestResult.Metadata, "dt_published")),
 		}
 		
 		latestPosts[baseURL] = latestPost
@@ -490,16 +493,16 @@ func (app *App) getSimilarBlogEmbedding(domain string) ([]float64, error) {
 }
 
 // convertFeedResults converts Pinecone matches to SearchResult format for feeds
-func (app *App) convertFeedResults(pineconeResults []PineconeMatch) []SearchResult {
+func (app *App) convertFeedResults(pineconeResults []pinecone.PineconeMatch) []SearchResult {
 	results := make([]SearchResult, len(pineconeResults))
 	for i, result := range pineconeResults {
-		title := getMetadataString(result.Metadata, "title")
-		ownerName := getMetadataString(result.Metadata, "owner_name")
+		title := utils.GetMetadataString(result.Metadata, "title")
+		ownerName := utils.GetMetadataString(result.Metadata, "owner_name")
 		if ownerName != "" {
 			title = ownerName
 		}
-		subtitle := getMetadataString(result.Metadata, "short_summary")
-		baseURL := getMetadataString(result.Metadata, "baseurl")
+		subtitle := utils.GetMetadataString(result.Metadata, "short_summary")
+		baseURL := utils.GetMetadataString(result.Metadata, "baseurl")
 		
 		results[i] = SearchResult{
 			URL:            baseURL,  // Use baseurl for feeds
@@ -507,11 +510,73 @@ func (app *App) convertFeedResults(pineconeResults []PineconeMatch) []SearchResu
 			Subtitle:       subtitle,
 			Date:           "", // Feeds don't have dates
 			Score:          result.Score,
-			BaseDomain:     cleanURL(baseURL),
+			BaseDomain:     utils.CleanURL(baseURL),
 			IsFeed:         true,
 			RSSURL:         result.ID, // RSS feed URL is stored in Pinecone ID
 			OriginalDomain: baseURL,
 		}
 	}
 	return results
+}
+
+// sortResultsByTime sorts search results by publication date (most recent first)
+func sortResultsByTime(results []SearchResult) {
+	sort.Slice(results, func(i, j int) bool {
+		dateI := utils.ParseDate(results[i].Date)
+		dateJ := utils.ParseDate(results[j].Date)
+		return dateI.After(dateJ) // Most recent first
+	})
+}
+
+// deduplicateByTitle removes duplicate search results based on title
+func deduplicateByTitle(results []SearchResult) []SearchResult {
+	seen := make(map[string]bool)
+	deduped := make([]SearchResult, 0, len(results))
+
+	for _, result := range results {
+		// Use lowercase title for comparison to handle case variations
+		titleKey := strings.ToLower(strings.TrimSpace(result.Title))
+
+		if !seen[titleKey] {
+			seen[titleKey] = true
+			deduped = append(deduped, result)
+		}
+	}
+
+	return deduped
+}
+
+// getMetadataKeys returns all keys from a metadata map
+func getMetadataKeys(metadata map[string]interface{}) []string {
+	keys := make([]string, 0, len(metadata))
+	for key := range metadata {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
+// parseTimeFromMetadata extracts and parses date from metadata
+func parseTimeFromMetadata(metadata map[string]interface{}) time.Time {
+	dateStr := utils.GetMetadataString(metadata, "dt_published")
+	if dateStr == "" {
+		return time.Time{} // Return zero time if no date
+	}
+
+	// Try multiple date formats
+	formats := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, dateStr); err == nil {
+			return t
+		}
+	}
+
+	return time.Time{} // Return zero time if parsing fails
 }

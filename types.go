@@ -4,6 +4,10 @@ import (
 	"html/template"
 	"sync"
 	"time"
+
+	"blognerd/internal/clients/openai"
+	"blognerd/internal/clients/pinecone"
+	"blognerd/internal/clients/voyage"
 )
 
 // SearchResult represents a single search result
@@ -64,11 +68,99 @@ type CustomRSSConfig struct {
 	Connections []CustomRSSConnection `json:"connections"`
 }
 
+// EmailDigest represents a user's email digest configuration
+type EmailDigest struct {
+	ID          string            `json:"id"`
+	UserID      string            `json:"user_id"`
+	Name        string            `json:"name"`
+	Frequency   string            `json:"frequency"` // daily, weekly, monthly
+	Sources     []DigestSource    `json:"sources"`
+	Rules       []DigestRule      `json:"rules"`
+	Preferences DigestPreferences `json:"preferences"`
+	Active      bool              `json:"active"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
+}
+
+// DigestSource represents a single source/search query in a digest
+type DigestSource struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Query      string `json:"query"`
+	MaxResults int    `json:"max_results"`
+}
+
+// DigestRule represents a filtering rule applied to combined source results
+type DigestRule struct {
+	ID    string `json:"id"`
+	Type  string `json:"type"`  // site_exclude, keyword_exclude, etc.
+	Value string `json:"value"` // domain, keyword, etc.
+}
+
+// DigestPreferences represents delivery preferences for a digest
+type DigestPreferences struct {
+	DeliveryTime string `json:"delivery_time"` // "08:00"
+	Timezone     string `json:"timezone"`      // "America/Los_Angeles"
+	IncludeImages bool  `json:"include_images"`
+}
+
+// User represents a user in the mock auth system
+type User struct {
+	ID        string    `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Session represents a user session
+type Session struct {
+	Token     string    `json:"token"`
+	UserID    string    `json:"user_id"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+// DigestPreviewResponse represents the preview of a digest with actual content
+type DigestPreviewResponse struct {
+	DigestName string                   `json:"digest_name"`
+	Sources    []DigestSourceWithResults `json:"sources"`
+	TotalItems int                      `json:"total_items"`
+}
+
+// DigestSourceWithResults represents a source with its search results
+type DigestSourceWithResults struct {
+	Name    string         `json:"name"`
+	Query   string         `json:"query"`
+	Results []SearchResult `json:"results"`
+}
+
+// SourcePreviewResponse represents a preview of a single source
+type SourcePreviewResponse struct {
+	SourceName string         `json:"source_name"`
+	Query      string         `json:"query"`
+	Results    []SearchResult `json:"results"`
+	TotalItems int            `json:"total_items"`
+}
+
+// CombinedPreviewResponse represents combined results from all sources
+type CombinedPreviewResponse struct {
+	Results    []SearchResult `json:"results"`
+	TotalItems int            `json:"total_items"`
+	BySource   map[string]int `json:"by_source"` // source_name -> count
+}
+
 // App represents the main application with all its dependencies
 type App struct {
 	templates   *template.Template
-	pineconeAPI *PineconeClient
-	voyageAPI   *VoyageClient
+	pineconeAPI *pinecone.Client
+	voyageAPI   *voyage.Client
+	openAIAPI   *openai.Client
 	rssCache    map[string]RSSCacheItem
 	rssMutex    sync.RWMutex
+	// Mock data stores (in production these would be in a database)
+	users        map[string]User          // email -> User
+	sessions     map[string]Session       // token -> Session
+	digests      map[string]EmailDigest   // digestID -> EmailDigest
+	userDigests  map[string][]string      // userID -> []digestID
+	digestsMutex sync.RWMutex
+	authMutex    sync.RWMutex
 }

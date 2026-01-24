@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"blognerd/internal/utils"
 )
 
 // handleCustomRSSPost handles POST requests for custom RSS generation
@@ -214,8 +216,8 @@ func (app *App) processCustomRSSWorkflow(config *CustomRSSConfig) ([]SearchResul
 
 	// Sort by time descending for RSS output
 	sort.Slice(deduplicatedResults, func(i, j int) bool {
-		timeI := parseDate(deduplicatedResults[i].Date)
-		timeJ := parseDate(deduplicatedResults[j].Date)
+		timeI := utils.ParseDate(deduplicatedResults[i].Date)
+		timeJ := utils.ParseDate(deduplicatedResults[j].Date)
 		return timeI.After(timeJ)
 	})
 
@@ -412,8 +414,8 @@ func (app *App) applySortProcessor(results []SearchResult, node *CustomRSSNode) 
 	copy(sortedResults, results)
 
 	sort.Slice(sortedResults, func(i, j int) bool {
-		dateI := parseDate(sortedResults[i].Date)
-		dateJ := parseDate(sortedResults[j].Date)
+		dateI := utils.ParseDate(sortedResults[i].Date)
+		dateJ := utils.ParseDate(sortedResults[j].Date)
 		
 		if order == "desc" {
 			return dateI.After(dateJ)
@@ -560,8 +562,8 @@ func (app *App) generateCustomRSSFeed(results []SearchResult, title, description
 	rss := `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
-<title>` + escapeXML(title) + `</title>
-<description>` + escapeXML(description) + `</description>
+<title>` + utils.EscapeXML(title) + `</title>
+<description>` + utils.EscapeXML(description) + `</description>
 <link>` + fmt.Sprintf("https://%s/", r.Host) + `</link>
 <lastBuildDate>` + pubDate + `</lastBuildDate>
 <pubDate>` + pubDate + `</pubDate>
@@ -592,17 +594,17 @@ func (app *App) generateCustomRSSFeed(results []SearchResult, title, description
 
 		// Convert to RFC1123Z format for RSS
 		itemPubDate := pubDate
-		if parsedDate := parseDate(itemDate); !parsedDate.IsZero() {
+		if parsedDate := utils.ParseDate(itemDate); !parsedDate.IsZero() {
 			itemPubDate = parsedDate.Format(time.RFC1123Z)
 		}
 
 		rss += `<item>
-<title>` + escapeXML(itemTitle) + `</title>
-<description>` + escapeXML(itemDescription) + `</description>
-<link>` + escapeXML(itemURL) + `</link>
-<guid>` + escapeXML(itemURL) + `</guid>
+<title>` + utils.EscapeXML(itemTitle) + `</title>
+<description>` + utils.EscapeXML(itemDescription) + `</description>
+<link>` + utils.EscapeXML(itemURL) + `</link>
+<guid>` + utils.EscapeXML(itemURL) + `</guid>
 <pubDate>` + itemPubDate + `</pubDate>
-<source>` + escapeXML(result.BaseDomain) + `</source>
+<source>` + utils.EscapeXML(result.BaseDomain) + `</source>
 </item>
 `
 	}

@@ -1,0 +1,283 @@
+<!-- Email Digest state -->
+<div id="email-digest-container" class="digest-container" style="display: none;">
+    <!-- Sign-in required view -->
+    <div id="digest-signin-required" class="digest-signin">
+        <div class="signin-hero">
+            <h1>📧 Email Digests</h1>
+            <p class="hero-subtitle">Get personalized content delivered to your inbox</p>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Custom Sources</h3>
+                    <p>Choose exactly what content you want to receive using our powerful search filters</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏰</div>
+                    <h3>Your Schedule</h3>
+                    <p>Daily, weekly, or monthly delivery at your preferred time</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <h3>Stay Updated</h3>
+                    <p>Never miss important content from your favorite blogs and sources</p>
+                </div>
+            </div>
+            <button class="btn-primary btn-large" onclick="showSignInModal()">Sign In to Get Started</button>
+        </div>
+    </div>
+
+    <!-- Authenticated user view -->
+    <div id="digest-authenticated" class="digest-authenticated" style="display: none;">
+        <div class="digest-header">
+            <h1>📧 Email Digests</h1>
+            <div class="digest-header-actions">
+                <span class="user-email" id="user-email-display"></span>
+                <button class="btn-secondary" onclick="handleLogout()">Sign Out</button>
+                <button class="btn-primary" onclick="showCreateDigestForm()">+ Create Digest</button>
+            </div>
+        </div>
+
+        <!-- List of digests -->
+        <div id="digest-list" class="digest-list">
+            <div class="loading" id="digest-loading">Loading your digests...</div>
+            <div id="digest-items"></div>
+            <div id="digest-empty" class="empty-state" style="display: none;">
+                <p>You haven't created any email digests yet.</p>
+                <button class="btn-primary" onclick="showCreateDigestForm()">Create Your First Digest</button>
+            </div>
+        </div>
+
+        <!-- Create/Edit digest form -->
+        <div id="digest-form-container" class="digest-form-container" style="display: none;">
+            <div class="digest-form">
+                <div class="form-header">
+                    <h2 id="form-title">Create Email Digest</h2>
+                    <button class="btn-text" onclick="hideDigestForm()">Cancel</button>
+                </div>
+
+                <!-- AI Description Section (shown first for new digests) -->
+                <div id="ai-description-section" class="form-section">
+                    <label for="digest-description">What kind of content would you like to receive?</label>
+                    <textarea
+                        id="digest-description"
+                        class="form-input"
+                        rows="4"
+                        placeholder="Describe what you'd like in your email digest. For example: 'I want daily updates on AI research from academic sources and tech blogs' or 'Weekly roundup of climate change news and policy updates'"></textarea>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-primary" onclick="generateDigestFromAI()" id="generate-btn">✨ Generate Digest</button>
+                        <button class="btn-secondary" onclick="skipAIGeneration()" id="skip-ai-btn" style="margin-left: 10px;">Configure Manually</button>
+                    </div>
+                </div>
+
+                <!-- Main form fields (hidden initially for new digests) -->
+                <div id="digest-main-fields" style="display: none;">
+                    <!-- Regenerate button (shown after AI generation) -->
+                    <div id="regenerate-section" class="form-section" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <label style="margin-bottom: 10px;">AI Description</label>
+                        <div style="display: flex; gap: 10px; align-items: start;">
+                            <textarea
+                                id="digest-description-edit"
+                                class="form-input"
+                                rows="2"
+                                style="flex: 1;"></textarea>
+                            <button class="btn-primary" onclick="regenerateDigestFromAI()" style="white-space: nowrap;">🔄 Regenerate</button>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <label for="digest-name">Digest Name</label>
+                        <input type="text" id="digest-name" placeholder="e.g., Morning AI Brief" class="form-input">
+                    </div>
+
+                <div class="form-section">
+                    <label for="digest-frequency">Delivery Frequency</label>
+                    <select id="digest-frequency" class="form-select">
+                        <option value="daily">Daily (last 24 hours of content)</option>
+                        <option value="weekly">Weekly (last 7 days of content)</option>
+                        <option value="monthly">Monthly (last 30 days of content)</option>
+                    </select>
+                    <p class="help-text">Source previews will show content from this time period</p>
+                </div>
+
+                <div class="form-section">
+                    <label>Sources</label>
+                    <div id="sources-list" class="sources-list"></div>
+                    <button class="btn-secondary" onclick="showAddSourceModal()">+ Add Source</button>
+                </div>
+
+                <div class="form-section">
+                    <label>Rules</label>
+                    <p class="help-text">Filter combined results from all sources</p>
+                    <div id="rules-list" class="rules-list"></div>
+                    <button class="btn-secondary" onclick="showAddRuleModal()">+ Add Rule</button>
+                </div>
+
+                <div class="form-section">
+                    <label>Delivery Schedule</label>
+                    <div class="delivery-schedule">
+                        <div class="schedule-field">
+                            <label for="digest-delivery-time">Time</label>
+                            <input type="time" id="digest-delivery-time" value="08:00" class="form-input">
+                        </div>
+                        <div class="schedule-field">
+                            <label for="digest-timezone">Timezone</label>
+                            <select id="digest-timezone" class="form-select"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="digest-active" checked>
+                        Active (send emails)
+                    </label>
+                </div>
+
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="previewNewsletter()" id="preview-newsletter-btn">📧 Preview Newsletter</button>
+                        <div style="flex: 1;"></div>
+                        <button class="btn-secondary" onclick="hideDigestForm()">Cancel</button>
+                        <button class="btn-primary" onclick="saveDigest()" id="save-btn">Save Digest</button>
+                    </div>
+                </div> <!-- End digest-main-fields -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sign-in modal -->
+<div id="signin-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeSignInModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Sign In</h2>
+            <button class="modal-close" onclick="closeSignInModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-note">Demo authentication - use any email/password</p>
+            <form id="signin-form" onsubmit="handleSignIn(event)">
+                <div class="form-section">
+                    <label for="signin-email">Email</label>
+                    <input type="email" id="signin-email" placeholder="you@example.com" required class="form-input">
+                </div>
+                <div class="form-section">
+                    <label for="signin-password">Password</label>
+                    <input type="password" id="signin-password" placeholder="Enter any password" required class="form-input">
+                </div>
+                <div id="signin-error" class="error-message" style="display: none;"></div>
+                <button type="submit" class="btn-primary btn-block">Sign In</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit source modal -->
+<div id="source-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeSourceModal()"></div>
+    <div class="modal-content modal-xlarge">
+        <div class="modal-header">
+            <h2 id="source-modal-title">Add Source</h2>
+            <button class="modal-close" onclick="closeSourceModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="source-config">
+                <div class="form-section">
+                    <label for="source-query">Search Query</label>
+                    <div class="query-input-row">
+                        <input type="text" id="source-query" placeholder="e.g., machine learning type:academic" class="form-input">
+                        <button class="btn-primary" onclick="saveSource()" id="save-source-btn">Save Source</button>
+                    </div>
+                    <p class="help-text">Use the same search syntax as the main search (site:, type:, since:, etc.)</p>
+                </div>
+            </div>
+
+            <!-- Preview results area -->
+            <div id="source-preview-container">
+                <div id="source-preview-loading" class="loading" style="display: none;">Generating preview...</div>
+                <div id="source-preview-results" class="source-preview-results" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick preview modal -->
+<div id="quick-preview-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeQuickPreviewModal()"></div>
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="quick-preview-title">Source Preview</h2>
+            <button class="modal-close" onclick="closeQuickPreviewModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="quick-preview-loading" class="loading">Loading preview...</div>
+            <div id="quick-preview-results" class="source-preview-results" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Rules configurator modal -->
+<div id="rules-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeRulesModal()"></div>
+    <div class="modal-content modal-xlarge">
+        <div class="modal-header">
+            <h2 id="rules-modal-title">Add Rule</h2>
+            <button class="modal-close" onclick="closeRulesModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="rule-config">
+                <div class="form-section">
+                    <label for="rule-type">Rule Type</label>
+                    <select id="rule-type" class="form-select" onchange="handleRuleTypeChange()">
+                        <option value="site_exclude">Site Exclude</option>
+                        <option value="keyword_exclude">Keyword Exclude</option>
+                    </select>
+                </div>
+                <div class="form-section">
+                    <label for="rule-value" id="rule-value-label">Domain or URL</label>
+                    <div class="query-input-row">
+                        <input type="text" id="rule-value" placeholder="e.g., example.com or example.com/path" class="form-input">
+                        <button class="btn-primary" onclick="saveRule()" id="save-rule-btn">Save Rule</button>
+                    </div>
+                    <p class="help-text" id="rule-help-text">Content from this domain/URL will be excluded from your digest</p>
+                </div>
+            </div>
+
+            <!-- Rules preview area -->
+            <div id="rules-preview-container" style="display: none;">
+                <div class="rules-preview-header">
+                    <div class="preview-stats-row">
+                        <div class="stat-box">
+                            <span class="stat-label">Before filtering:</span>
+                            <span class="stat-value" id="rules-before-count">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">After filtering:</span>
+                            <span class="stat-value" id="rules-after-count">0</span>
+                        </div>
+                        <div class="stat-box excluded">
+                            <span class="stat-label">Excluded:</span>
+                            <span class="stat-value" id="rules-excluded-count">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="rules-preview-loading" class="loading" style="display: none;">Loading combined results...</div>
+                <div id="rules-preview-results" class="source-preview-results" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter Preview Modal -->
+<div id="newsletter-preview-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeNewsletterPreview()"></div>
+    <div class="modal-content modal-xlarge">
+        <div class="modal-header">
+            <h2>Newsletter Preview</h2>
+            <button class="modal-close" onclick="closeNewsletterPreview()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="newsletter-preview-loading" class="loading">Generating newsletter with AI...</div>
+            <div id="newsletter-preview-content" style="display: none; border: 1px solid #e0e0e0; border-radius: 6px; padding: 20px; background: white; max-height: 70vh; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>

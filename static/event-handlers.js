@@ -47,6 +47,25 @@ document.addEventListener('click', function(e) {
     if (e.target.classList.contains('type-tab') || e.target.classList.contains('type-tab-large')) {
         const type = e.target.dataset.type;
 
+        // Handle Email tab separately
+        if (type === 'email') {
+            // Update active state
+            const container = e.target.parentElement;
+            container.querySelectorAll('.type-tab, .type-tab-large').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            e.target.classList.add('active');
+
+            // Switch to email digest view
+            switchToEmailTab();
+            return;
+        }
+
+        // Coming back from email tab
+        if (currentSearchType === 'email') {
+            switchFromEmailTab();
+        }
+
         currentSearchType = type;
 
         // Update active state
